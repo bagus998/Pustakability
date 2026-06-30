@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import { StatsSection } from "./components/StatsSection";
@@ -33,6 +34,7 @@ const MOCK_CREDENTIALS = [
 ];
 
 export default function App() {
+  const { t } = useTranslation();
   const [page, setPage] = useState<Page>("home");
   const [user, setUser] = useState<AuthUser | null>(null);
   const [darkMode, setDarkMode] = useState(false);
@@ -126,25 +128,24 @@ export default function App() {
             >
               <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
                 <h2 className="text-white" style={{ fontSize: "1.9rem", fontWeight: 700 }}>
-                  Mulai Perjalanan Belajar Anda Hari Ini
+                  {t("cta.title")}
                 </h2>
                 <p className="mt-3 mb-8 text-blue-100" style={{ fontSize: "1rem" }}>
-                  Bergabunglah dengan lebih dari 1.200 mahasiswa UB yang telah merasakan kemudahan
-                  belajar tanpa hambatan aksesibilitas.
+                  {t("cta.desc")}
                 </p>
                 <div className="flex flex-wrap gap-4 justify-center">
                   <button
                     onClick={() => navigateTo("catalog")}
                     className="px-8 py-3.5 rounded-xl font-semibold bg-white text-[#0A1172] hover:bg-gray-50 transition-colors"
                   >
-                    Jelajahi Koleksi
+                    {t("cta.btn_explore")}
                   </button>
                   {!user && (
                     <button
                       onClick={() => navigateTo("register")}
                       className="px-8 py-3.5 rounded-xl font-medium border border-white/40 text-white hover:bg-white/10 transition-colors"
                     >
-                      Daftar Sekarang
+                      {t("cta.btn_register")}
                     </button>
                   )}
                 </div>

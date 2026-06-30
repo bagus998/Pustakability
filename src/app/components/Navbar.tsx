@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Search, Menu, X, Moon, Sun, ChevronDown, LogOut, Shield, BookPlus } from "lucide-react";
 import type { AuthUser, UserRole, Page } from "../App";
-import logoImg from "../../imports/image.png";
+import logoImg from "../../imports/logo.png";
+import { useTranslation } from "react-i18next";
 
 interface NavbarProps {
   currentPage: Page;
@@ -14,23 +15,26 @@ interface NavbarProps {
 }
 
 const languages = [
-  { code: "id", label: "Indonesia", flag: "🇮🇩", short: "ID" },
-  { code: "en", label: "English",   flag: "🇺🇸", short: "EN" },
+  { code: "id", label: "Indonesia", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Flag_of_Indonesia.svg/960px-Flag_of_Indonesia.svg.png", short: "ID" },
+  { code: "en", label: "English",   flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_the_United_States.svg/500px-Flag_of_the_United_States.svg.png", short: "EN" },
 ];
 
 export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle, user, role, onLogout }: NavbarProps) {
+  const { t, i18n } = useTranslation();
   const [mobileOpen, setMobileOpen]   = useState(false);
   const [searchOpen, setSearchOpen]   = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [langOpen, setLangOpen]       = useState(false);
-  const [lang, setLang]               = useState(languages[0]);
+  
+  const currentLang = languages.find(l => l.code === i18n.language) || languages[0];
+  const setLang = (l: typeof languages[0]) => i18n.changeLanguage(l.code);
 
   const navBg     = dm ? "#0F1623" : "#0A1172";
   const navBorder = dm ? "#1E2D4F" : "rgba(255,255,255,0.1)";
 
   const navLinks = [
-    { id: "home"    as Page, label: "Beranda" },
-    { id: "catalog" as Page, label: "Koleksi" },
+    { id: "home"    as Page, label: t("navbar.home") },
+    { id: "catalog" as Page, label: t("navbar.catalog") },
   ];
 
   const roleLabel: Record<UserRole, string> = {
@@ -66,7 +70,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
             <img
               src={logoImg}
               alt="Logo Pustakability"
-              className="w-9 h-9 object-contain"
+              className="w-10 h-10 object-contain"
               style={{ filter: dm ? "brightness(1.1)" : "brightness(1)" }}
             />
             <div className="flex flex-col text-left">
@@ -109,7 +113,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                 }}
               >
                 <Shield className="w-3.5 h-3.5" />
-                Admin
+                {t("navbar.admin")}
               </button>
             )}
 
@@ -124,7 +128,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                 }}
               >
                 <BookPlus className="w-3.5 h-3.5" />
-                Tambah Buku
+                {t("navbar.volunteer")}
               </button>
             )}
           </div>
@@ -161,9 +165,9 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                 aria-expanded={langOpen}
                 aria-label="Pilih bahasa"
               >
-                <span style={{ fontSize: "1rem" }}>{lang.flag}</span>
+                <img src={currentLang.flag} alt={currentLang.label} className="w-5 h-auto rounded-sm shadow-sm" />
                 <span className="text-white" style={{ fontSize: "0.78rem", fontWeight: 500 }}>
-                  {lang.short}
+                  {currentLang.short}
                 </span>
                 <ChevronDown
                   className="w-3 h-3 transition-transform"
@@ -187,30 +191,30 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                       <button
                         key={l.code}
                         role="option"
-                        aria-selected={lang.code === l.code}
+                        aria-selected={currentLang.code === l.code}
                         onClick={() => { setLang(l); setLangOpen(false); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
                         style={{
                           backgroundColor:
-                            lang.code === l.code
+                            currentLang.code === l.code
                               ? dm ? "rgba(59,91,219,0.2)" : "#EEF2FF"
                               : "transparent",
                           color: dm ? "#F1F5F9" : "#0F1B35",
                         }}
                         onMouseEnter={(e) => {
-                          if (lang.code !== l.code)
+                          if (currentLang.code !== l.code)
                             e.currentTarget.style.backgroundColor = dm ? "rgba(255,255,255,0.05)" : "#F9FAFB";
                         }}
                         onMouseLeave={(e) => {
-                          if (lang.code !== l.code)
+                          if (currentLang.code !== l.code)
                             e.currentTarget.style.backgroundColor = "transparent";
                         }}
                       >
-                        <span style={{ fontSize: "1.15rem" }}>{l.flag}</span>
-                        <span style={{ fontSize: "0.875rem", fontWeight: lang.code === l.code ? 600 : 400 }}>
+                        <img src={l.flag} alt={l.label} className="w-6 h-auto rounded-sm shadow-sm" />
+                        <span style={{ fontSize: "0.875rem", fontWeight: currentLang.code === l.code ? 600 : 400 }}>
                           {l.label}
                         </span>
-                        {lang.code === l.code && (
+                        {currentLang.code === l.code && (
                           <span className="ml-auto" style={{ color: "#3B5BDB", fontSize: "0.65rem", fontWeight: 700 }}>
                             ✓
                           </span>
@@ -281,7 +285,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                         >
                           <BookPlus className="w-4 h-4" />
-                          Jelajahi Koleksi
+                          {t("navbar.catalog")}
                         </button>
 
                         {(role === "volunteer" || role === "admin") && (
@@ -293,7 +297,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                           >
                             <BookPlus className="w-4 h-4" />
-                            Tambah Buku
+                            {t("navbar.volunteer")}
                           </button>
                         )}
 
@@ -306,7 +310,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                           >
                             <Shield className="w-4 h-4" />
-                            Admin Dashboard
+                            {t("navbar.admin")}
                           </button>
                         )}
 
@@ -320,7 +324,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                         >
                           <LogOut className="w-4 h-4" />
-                          Keluar
+                          {t("navbar.logout")}
                         </button>
                       </div>
                     </div>
@@ -336,14 +340,14 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                   onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "white"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.75)"; }}
                 >
-                  Masuk
+                  {t("navbar.login")}
                 </button>
                 <button
                   onClick={() => onNavigate("register")}
                   className="px-4 py-1.5 rounded-lg font-medium"
                   style={{ backgroundColor: "#00D4AC", color: "#0A1172", fontSize: "0.875rem" }}
                 >
-                  Daftar
+                  {t("navbar.register")}
                 </button>
               </div>
             )}
@@ -400,7 +404,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
               )}
               {(role === "volunteer" || role === "admin") && (
                 <button onClick={() => { onNavigate("volunteer"); setMobileOpen(false); }} className="text-left px-3 py-2.5 rounded-lg text-white/80 hover:bg-white/10 flex items-center gap-2" style={{ fontSize: "0.875rem" }}>
-                  <BookPlus className="w-4 h-4" /> Tambah Buku
+                  <BookPlus className="w-4 h-4" /> {t("navbar.volunteer")}
                 </button>
               )}
 
@@ -412,13 +416,13 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                     onClick={() => setLang(l)}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-colors"
                     style={{
-                      backgroundColor: lang.code === l.code ? "rgba(255,255,255,0.15)" : "transparent",
+                      backgroundColor: currentLang.code === l.code ? "rgba(255,255,255,0.15)" : "transparent",
                       color: "white",
                       fontSize: "0.8rem",
-                      border: lang.code === l.code ? "1px solid rgba(255,255,255,0.3)" : "1px solid transparent",
+                      border: currentLang.code === l.code ? "1px solid rgba(255,255,255,0.3)" : "1px solid transparent",
                     }}
                   >
-                    <span>{l.flag}</span>
+                    <img src={l.flag} alt={l.label} className="w-5 h-auto rounded-sm shadow-sm" />
                     <span>{l.label}</span>
                   </button>
                 ))}
@@ -427,12 +431,12 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
               <div className="flex items-center gap-2 px-3 mt-1">
                 {user ? (
                   <button onClick={() => { onLogout(); setMobileOpen(false); }} className="flex items-center gap-2 px-4 py-1.5 rounded-lg border border-red-400/40 text-red-300" style={{ fontSize: "0.875rem" }}>
-                    <LogOut className="w-4 h-4" /> Keluar
+                    <LogOut className="w-4 h-4" /> {t("navbar.logout")}
                   </button>
                 ) : (
                   <>
-                    <button onClick={() => { onNavigate("login"); setMobileOpen(false); }} className="px-4 py-1.5 rounded-lg border border-white/20 text-white/80" style={{ fontSize: "0.875rem" }}>Masuk</button>
-                    <button onClick={() => { onNavigate("register"); setMobileOpen(false); }} className="px-4 py-1.5 rounded-lg font-medium" style={{ backgroundColor: "#00D4AC", color: "#0A1172", fontSize: "0.875rem" }}>Daftar</button>
+                    <button onClick={() => { onNavigate("login"); setMobileOpen(false); }} className="px-4 py-1.5 rounded-lg border border-white/20 text-white/80" style={{ fontSize: "0.875rem" }}>{t("navbar.login")}</button>
+                    <button onClick={() => { onNavigate("register"); setMobileOpen(false); }} className="px-4 py-1.5 rounded-lg font-medium" style={{ backgroundColor: "#00D4AC", color: "#0A1172", fontSize: "0.875rem" }}>{t("navbar.register")}</button>
                   </>
                 )}
               </div>

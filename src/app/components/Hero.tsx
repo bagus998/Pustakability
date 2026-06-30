@@ -2,35 +2,37 @@ import { useState } from "react";
 import { Search, Volume2, FileText, BookOpen, ArrowRight } from "lucide-react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import type { Page } from "../App";
+import { useTranslation, Trans } from "react-i18next";
 
 interface HeroProps {
   darkMode: boolean;
   onNavigate: (page: Page) => void;
 }
 
-const formatCards = [
-  { icon: Volume2, label: "Audio Book", color: "#00D4AC", desc: "Text-to-Speech" },
-  { icon: FileText, label: "PDF Aksesibel", color: "#3B5BDB", desc: "Teks digital" },
-  { icon: BookOpen, label: "DAISY", color: "#0D7070", desc: "Navigasi audio" },
-  {
-    icon: () => (
-      <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" aria-hidden="true">
-        <circle cx="6" cy="12" r="1.5" fill="currentColor" />
-        <circle cx="10" cy="8" r="1.5" fill="currentColor" />
-        <circle cx="10" cy="12" r="1.5" fill="currentColor" />
-        <circle cx="14" cy="10" r="1.5" fill="currentColor" />
-        <circle cx="14" cy="14" r="1.5" fill="currentColor" />
-        <circle cx="18" cy="12" r="1.5" fill="currentColor" />
-      </svg>
-    ),
-    label: "Braille Digital",
-    color: "#87C4E8",
-    desc: "Format BRF",
-  },
-];
-
 export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
+  
+  const formatCards = [
+    { icon: Volume2, label: t("hero.format_audio"), color: "#00D4AC", desc: t("hero.format_audio_desc") },
+    { icon: FileText, label: t("hero.format_pdf"), color: "#3B5BDB", desc: t("hero.format_pdf_desc") },
+    { icon: BookOpen, label: t("hero.format_daisy"), color: "#0D7070", desc: t("hero.format_daisy_desc") },
+    {
+      icon: () => (
+        <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" aria-hidden="true">
+          <circle cx="6" cy="12" r="1.5" fill="currentColor" />
+          <circle cx="10" cy="8" r="1.5" fill="currentColor" />
+          <circle cx="10" cy="12" r="1.5" fill="currentColor" />
+          <circle cx="14" cy="10" r="1.5" fill="currentColor" />
+          <circle cx="14" cy="14" r="1.5" fill="currentColor" />
+          <circle cx="18" cy="12" r="1.5" fill="currentColor" />
+        </svg>
+      ),
+      label: t("hero.format_braille"),
+      color: "#87C4E8",
+      desc: t("hero.format_braille_desc"),
+    },
+  ];
 
   return (
     <section
@@ -74,7 +76,7 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
             }}
           >
             <div className="w-2 h-2 rounded-full bg-[#00D4AC] animate-pulse" />
-            Pusat Layanan Disabilitas — Universitas Brawijaya
+            {t("hero.badge")}
           </div>
 
           {/* Heading */}
@@ -83,7 +85,7 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
             className="text-white mb-5"
             style={{ fontSize: "clamp(1.8rem, 4vw, 2.75rem)", fontWeight: 700, lineHeight: 1.2 }}
           >
-            Pustaka Digital{" "}
+            {t("hero.title_main")}{" "}
             <span
               style={{
                 background: "linear-gradient(90deg, #00D4AC, #87C4E8)",
@@ -92,16 +94,15 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
                 backgroundClip: "text",
               }}
             >
-              Aksesibel
+              {t("hero.title_highlight")}
             </span>{" "}
-            untuk Penyandang Disabilitas Cetak
+            {t("hero.title_sub")}
           </h1>
 
           <p className="text-blue-100 mb-8 leading-relaxed" style={{ fontSize: "1.05rem" }}>
-            Akses lebih dari{" "}
-            <strong className="text-[#00D4AC]">10.000 koleksi</strong> buku teks, jurnal, dan materi
-            pembelajaran dalam format Audio, Braille Digital, DAISY, dan PDF Aksesibel — khusus untuk
-            mahasiswa UB.
+            <Trans i18nKey="hero.description">
+              Akses lebih dari <strong className="text-[#00D4AC]">10.000 koleksi</strong> buku teks, jurnal, dan materi pembelajaran dalam format Audio, Braille Digital, DAISY, dan PDF Aksesibel — khusus untuk mahasiswa UB.
+            </Trans>
           </p>
 
           {/* Search Bar */}
@@ -111,7 +112,7 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
               type="search"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari judul buku, penulis, atau kategori..."
+              placeholder={t("hero.search_placeholder")}
               aria-label="Cari koleksi"
               className="w-full pl-12 pr-32 py-4 rounded-xl outline-none text-white placeholder-blue-300 transition-all"
               style={{
@@ -127,7 +128,7 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
               className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg font-medium"
               style={{ backgroundColor: "#00D4AC", color: "#0A1172", fontSize: "0.875rem" }}
             >
-              Cari
+              {t("hero.btn_search")}
             </button>
           </div>
 
@@ -167,7 +168,7 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
               className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all hover:opacity-90"
               style={{ background: "linear-gradient(135deg, #00D4AC, #3B5BDB)" }}
             >
-              Jelajahi Koleksi
+              {t("hero.btn_explore")}
               <ArrowRight className="w-4 h-4" />
             </button>
             <button
@@ -177,7 +178,7 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)")}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
             >
-              Daftar Sekarang
+              {t("hero.btn_register")}
             </button>
           </div>
         </div>
@@ -205,7 +206,7 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
               </div>
               <div>
                 <div className="text-[#0A1172] font-bold" style={{ fontSize: "0.85rem" }}>4.200+</div>
-                <div className="text-gray-400" style={{ fontSize: "0.7rem" }}>Audio Books</div>
+                <div className="text-gray-400" style={{ fontSize: "0.7rem" }}>{t("hero.stats_audio")}</div>
               </div>
             </div>
           </div>
@@ -217,7 +218,7 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
               </div>
               <div>
                 <div className="text-white font-bold" style={{ fontSize: "0.85rem" }}>10.000+</div>
-                <div className="text-blue-300" style={{ fontSize: "0.7rem" }}>Koleksi Digital</div>
+                <div className="text-blue-300" style={{ fontSize: "0.7rem" }}>{t("hero.stats_collection")}</div>
               </div>
             </div>
           </div>

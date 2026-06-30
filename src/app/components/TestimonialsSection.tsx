@@ -1,37 +1,14 @@
 import { Quote } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface TestimonialsSectionProps {
   darkMode: boolean;
 }
 
-const testimonials = [
-  {
-    name: "Ahmad Fauzan",
-    faculty: "Fakultas Hukum, Angkatan 2021",
-    disability: "Tunanetra",
-    text: "Pustakability benar-benar mengubah cara saya belajar. Sebelumnya saya harus meminta bantuan teman untuk membacakan materi, tapi sekarang saya bisa mengakses semua buku hukum dalam format audio kapan saja.",
-    initials: "AF",
-    color: "#0A1172",
-  },
-  {
-    name: "Siti Rahayu",
-    faculty: "Fakultas MIPA, Angkatan 2020",
-    disability: "Disleksia",
-    text: "Fitur font aksesibel dan pengaturan spasi baris sangat membantu saya. Saya dulu selalu kesulitan membaca teks padat di buku cetak, tapi dengan Pustakability saya bisa membaca dengan jauh lebih nyaman.",
-    initials: "SR",
-    color: "#0D7070",
-  },
-  {
-    name: "Rizky Pratama",
-    faculty: "Fakultas Teknik, Angkatan 2022",
-    disability: "Low Vision",
-    text: "Format DAISY sangat bagus karena saya bisa langsung melompat ke bagian yang saya butuhkan. Terima kasih PLD UB atas layanan yang luar biasa ini!",
-    initials: "RP",
-    color: "#3B5BDB",
-  },
-];
+// Testimonials array will be generated dynamically
 
 export function TestimonialsSection({ darkMode: dm }: TestimonialsSectionProps) {
+  const { t } = useTranslation();
   const bg = dm ? "#0F1623" : "#FFFFFF";
   const card = dm ? "#161B2E" : "#F5F7FF";
   const border = dm ? "#1E2D4F" : "#E5E7EB";
@@ -39,6 +16,12 @@ export function TestimonialsSection({ darkMode: dm }: TestimonialsSectionProps) 
   const muted = dm ? "#94A3B8" : "#6B7280";
   const sectionLabelBg = dm ? "rgba(59,91,219,0.15)" : "rgba(10,17,114,0.06)";
   const sectionLabel = dm ? "rgba(147,197,253,0.8)" : "#0A1172";
+
+  const testimonials = [
+    { name: t("features.name1"), role: t("features.role1"), text: t("features.text1"), initials: "AF", color: "#0A1172" },
+    { name: t("features.name2"), role: t("features.role2"), text: t("features.text2"), initials: "SR", color: "#0D7070" },
+    { name: t("features.name3"), role: t("features.role3"), text: t("features.text3"), initials: "RP", color: "#3B5BDB" },
+  ];
 
   return (
     <section className="py-20" style={{ backgroundColor: bg }} aria-labelledby="testimonials-heading">
@@ -48,7 +31,7 @@ export function TestimonialsSection({ darkMode: dm }: TestimonialsSectionProps) 
             Cerita Pengguna
           </div>
           <h2 id="testimonials-heading" style={{ fontSize: "1.9rem", fontWeight: 700, color: text }}>
-            Belajar Lebih Mudah dengan Pustakability
+            {t("features.title")}
           </h2>
         </div>
 
@@ -73,13 +56,7 @@ export function TestimonialsSection({ darkMode: dm }: TestimonialsSectionProps) 
                 </div>
                 <div>
                   <div style={{ fontSize: "0.875rem", fontWeight: 600, color: text }}>{t.name}</div>
-                  <div style={{ fontSize: "0.75rem", color: muted }}>{t.faculty}</div>
-                  <span
-                    className="inline-block mt-0.5 px-2 py-0.5 rounded-full"
-                    style={{ backgroundColor: sectionLabelBg, color: sectionLabel, fontSize: "0.65rem", fontWeight: 600 }}
-                  >
-                    {t.disability}
-                  </span>
+                  <div style={{ fontSize: "0.75rem", color: muted }}>{t.role}</div>
                 </div>
               </footer>
             </blockquote>

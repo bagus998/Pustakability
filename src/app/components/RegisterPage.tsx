@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff, BookOpen, ArrowLeft, CheckCircle } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { Page } from "../App";
 
 interface RegisterPageProps {
@@ -10,14 +11,14 @@ interface RegisterPageProps {
 const roleOptions = [
   {
     value: "user",
-    label: "Pengguna (Mahasiswa)",
-    desc: "Akses penuh ke seluruh koleksi e-book. Untuk penyandang disabilitas cetak yang terdaftar di PLD UB.",
+    labelKey: "role_user_label",
+    descKey: "role_user_desc",
     color: "#0A1172",
   },
   {
     value: "volunteer",
-    label: "Relawan (Volunteer)",
-    desc: "Dapat berkontribusi menambahkan buku ke koleksi, dengan validasi dari admin sebelum ditampilkan.",
+    labelKey: "role_vol_label",
+    descKey: "role_vol_desc",
     color: "#0D7070",
   },
 ];
@@ -31,6 +32,7 @@ const disabilityTypes = [
 ];
 
 export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
+  const { t } = useTranslation();
   const [step, setStep] = useState(1);
   const [selectedRole, setSelectedRole] = useState("user");
   const [form, setForm] = useState({
@@ -86,18 +88,16 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
           <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-green-100">
             <CheckCircle className="w-9 h-9 text-green-600" />
           </div>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: text }}>Pendaftaran Berhasil!</h2>
+          <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: text }}>{t("register.success_title")}</h2>
           <p style={{ fontSize: "0.9rem", color: muted, marginTop: "0.75rem", lineHeight: 1.6 }}>
-            {selectedRole === "user"
-              ? "Akun Anda sedang diverifikasi oleh tim PLD UB. Kami akan mengirimkan email aktivasi ke alamat email Anda dalam 1–3 hari kerja."
-              : "Pendaftaran volunteer Anda sedang direview oleh admin. Anda akan mendapat notifikasi via email setelah disetujui."}
+            {selectedRole === "user" ? t("register.success_desc_user") : t("register.success_desc_volunteer")}
           </p>
           <button
             onClick={() => onNavigate("login")}
             className="mt-6 w-full py-3.5 rounded-xl font-semibold text-white"
             style={{ background: "linear-gradient(135deg, #0A1172, #3B5BDB)", fontSize: "1rem" }}
           >
-            Kembali ke Login
+            {t("register.back_to_login")}
           </button>
         </div>
       </div>
@@ -116,7 +116,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
           style={{ color: muted, fontSize: "0.875rem" }}
         >
           <ArrowLeft className="w-4 h-4" />
-          {step > 1 ? "Kembali ke Langkah 1" : "Sudah punya akun? Masuk"}
+          {step > 1 ? t("register.back_step1") : t("register.have_account")}
         </button>
 
         <div
@@ -131,9 +131,9 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
             >
               <BookOpen className="w-7 h-7 text-white" />
             </div>
-            <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: text }}>Daftar Pustakability</h1>
+            <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: text }}>{t("register.title")}</h1>
             <p style={{ fontSize: "0.875rem", color: muted, marginTop: "0.375rem" }}>
-              Langkah {step} dari 2
+              {t("register.step_x_of_y", { current: step, total: 2 })}
             </p>
           </div>
 
@@ -153,7 +153,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                   {s}
                 </div>
                 <span style={{ fontSize: "0.78rem", color: step >= s ? (dm ? "#93C5FD" : "#0A1172") : muted, fontWeight: step >= s ? 500 : 400 }}>
-                  {s === 1 ? "Peran & Info" : "Keamanan"}
+                  {s === 1 ? t("register.step1_label") : t("register.step2_label")}
                 </span>
                 {s < 2 && <div className="flex-1 h-px" style={{ backgroundColor: border }} />}
               </div>
@@ -166,7 +166,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                 {/* Role Selection */}
                 <div>
                   <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.5rem" }}>
-                    Saya mendaftar sebagai:
+                    {t("register.role_select")}
                   </label>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {roleOptions.map((opt) => (
@@ -181,10 +181,10 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                         }}
                       >
                         <div style={{ fontSize: "0.875rem", fontWeight: 600, color: selectedRole === opt.value ? opt.color : text }}>
-                          {opt.label}
+                          {t("register." + opt.labelKey)}
                         </div>
                         <div style={{ fontSize: "0.75rem", color: muted, marginTop: "0.25rem", lineHeight: 1.4 }}>
-                          {opt.desc}
+                          {t("register." + opt.descKey)}
                         </div>
                       </button>
                     ))}
@@ -194,26 +194,26 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                      Nama Lengkap
+                      {t("register.fullname")}
                     </label>
                     <input
                       type="text"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      placeholder="Nama sesuai KTM"
+                      placeholder={t("register.fullname_placeholder")}
                       required
                       style={inputStyle}
                     />
                   </div>
                   <div>
                     <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                      NIM
+                      {t("register.nim")}
                     </label>
                     <input
                       type="text"
                       value={form.nim}
                       onChange={(e) => setForm({ ...form, nim: e.target.value })}
-                      placeholder="Nomor Induk Mahasiswa"
+                      placeholder={t("register.nim_placeholder")}
                       required
                       style={inputStyle}
                     />
@@ -222,13 +222,13 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
 
                 <div>
                   <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                    Email UB
+                    {t("register.email")}
                   </label>
                   <input
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    placeholder="nim@student.ub.ac.id"
+                    placeholder={t("register.email_placeholder")}
                     required
                     style={inputStyle}
                   />
@@ -236,7 +236,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
 
                 <div>
                   <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                    Fakultas
+                    {t("register.faculty")}
                   </label>
                   <select
                     value={form.faculty}
@@ -244,9 +244,9 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                     required
                     style={{ ...inputStyle, cursor: "pointer" }}
                   >
-                    <option value="">Pilih Fakultas</option>
+                    <option value="">{t("register.faculty_placeholder")}</option>
                     {["Hukum", "Ilmu Administrasi", "Pertanian", "Teknik", "Kedokteran", "Perikanan & Ilmu Kelautan", "Peternakan", "Ilmu Sosial & Ilmu Politik", "Ilmu Budaya", "MIPA", "Teknologi Pertanian", "Ekonomi & Bisnis", "Ilmu Komputer", "Ilmu Kesehatan", "Vokasi"].map(f => (
-                      <option key={f} value={f}>{f}</option>
+                      <option key={f} value={f}>{t(`register.faculties.${f}`)}</option>
                     ))}
                   </select>
                 </div>
@@ -254,7 +254,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                 {selectedRole === "user" && (
                   <div>
                     <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                      Jenis Disabilitas Cetak
+                      {t("register.disability")}
                     </label>
                     <select
                       value={form.disability}
@@ -262,13 +262,13 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                       required
                       style={{ ...inputStyle, cursor: "pointer" }}
                     >
-                      <option value="">Pilih jenis disabilitas</option>
+                      <option value="">{t("register.disability_placeholder")}</option>
                       {disabilityTypes.map((d) => (
-                        <option key={d} value={d}>{d}</option>
+                        <option key={d} value={d}>{t(`register.disabilities.${d}`)}</option>
                       ))}
                     </select>
                     <p style={{ fontSize: "0.75rem", color: muted, marginTop: "0.375rem" }}>
-                      Verifikasi oleh tim PLD UB diperlukan sebelum akun aktif.
+                      {t("register.verification_note")}
                     </p>
                   </div>
                 )}
@@ -279,14 +279,14 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
               <>
                 <div>
                   <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                    Kata Sandi
+                    {t("register.password")}
                   </label>
                   <div className="relative">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={form.password}
                       onChange={(e) => setForm({ ...form, password: e.target.value })}
-                      placeholder="Minimal 8 karakter"
+                      placeholder={t("register.password_placeholder")}
                       required
                       minLength={8}
                       style={{ ...inputStyle, paddingRight: "3rem" }}
@@ -304,13 +304,13 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
 
                 <div>
                   <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                    Konfirmasi Kata Sandi
+                    {t("register.confirm_password")}
                   </label>
                   <input
                     type={showPassword ? "text" : "password"}
                     value={form.confirmPassword}
                     onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                    placeholder="Ulangi kata sandi"
+                    placeholder={t("register.confirm_password_placeholder")}
                     required
                     style={{
                       ...inputStyle,
@@ -319,32 +319,31 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                   />
                   {form.confirmPassword && form.confirmPassword !== form.password && (
                     <p style={{ fontSize: "0.75rem", color: "#EF4444", marginTop: "0.25rem" }}>
-                      Kata sandi tidak cocok
+                      {t("register.password_mismatch")}
                     </p>
                   )}
                 </div>
 
-                {/* Summary */}
                 <div
                   className="rounded-xl p-4"
                   style={{ backgroundColor: dm ? "#0A1172/20" : "#EEF2FF", border: `1px solid ${dm ? "#1E3A8A" : "#C7D2FE"}` }}
                 >
                   <p style={{ fontSize: "0.8rem", fontWeight: 600, color: dm ? "#93C5FD" : "#3730A3", marginBottom: "0.5rem" }}>
-                    Ringkasan Pendaftaran
+                    {t("register.summary_title")}
                   </p>
                   <div style={{ fontSize: "0.8rem", color: dm ? "#BAE6FD" : "#1E3A8A", lineHeight: 1.7 }}>
-                    <div>Nama: <strong>{form.name || "—"}</strong></div>
-                    <div>Email: <strong>{form.email || "—"}</strong></div>
-                    <div>Peran: <strong>{selectedRole === "user" ? "Pengguna" : "Volunteer"}</strong></div>
-                    {form.disability && <div>Disabilitas: <strong>{form.disability}</strong></div>}
+                    <div>{t("register.summary_name")}: <strong>{form.name || "—"}</strong></div>
+                    <div>{t("register.summary_email")}: <strong>{form.email || "—"}</strong></div>
+                    <div>{t("register.summary_role")}: <strong>{selectedRole === "user" ? t("register.role_user") : t("register.role_volunteer")}</strong></div>
+                    {form.disability && <div>{t("register.summary_disability")}: <strong>{t(`register.disabilities.${form.disability}`)}</strong></div>}
                   </div>
                 </div>
 
                 <div className="flex items-start gap-2">
                   <input type="checkbox" id="agree" required className="mt-1" />
                   <label htmlFor="agree" style={{ fontSize: "0.8rem", color: muted, lineHeight: 1.5 }}>
-                    Saya menyetujui <span style={{ color: "#3B5BDB" }}>Syarat & Ketentuan</span> dan{" "}
-                    <span style={{ color: "#3B5BDB" }}>Kebijakan Privasi</span> Pustakability PLD UB.
+                    {t("register.agree_prefix")} <span style={{ color: "#3B5BDB" }}>{t("register.terms")}</span> {t("register.and")}{" "}
+                    <span style={{ color: "#3B5BDB" }}>{t("register.privacy")}</span> {t("register.agree_suffix")}
                   </label>
                 </div>
               </>
@@ -360,7 +359,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                 cursor: (loading || (step === 2 && form.password !== form.confirmPassword)) ? "not-allowed" : "pointer",
               }}
             >
-              {loading ? "Memproses..." : step === 1 ? "Lanjutkan →" : "Daftar Sekarang"}
+              {loading ? t("login.btn_processing") : step === 1 ? t("register.btn_next") : t("register.btn_register")}
             </button>
           </form>
         </div>

@@ -1,6 +1,8 @@
 import { Mail, Phone, MapPin, ExternalLink } from "lucide-react";
 import type { Page } from "../App";
-import logoImg from "../../imports/image.png";
+import logoImg from "../../imports/logo.png";
+import ubLogo from "../../imports/logo-ub.png";
+import { useTranslation } from "react-i18next";
 
 interface FooterProps {
   darkMode: boolean;
@@ -8,6 +10,7 @@ interface FooterProps {
 }
 
 export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
+  const { t } = useTranslation();
   const footerBg = dm ? "#050A14" : "#0F1B35";
 
   return (
@@ -24,21 +27,20 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
               </div>
             </div>
             <p className="text-blue-200/60 leading-relaxed mb-5" style={{ fontSize: "0.85rem" }}>
-              Pustaka digital aksesibel untuk mahasiswa penyandang disabilitas cetak di Universitas Brawijaya.
+              {t("footer.desc")}
             </p>
             <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10">
-              <span className="font-black text-[#00D4AC]" style={{ fontSize: "0.75rem" }}>UB</span>
-              <span className="text-blue-200" style={{ fontSize: "0.75rem" }}>Universitas Brawijaya</span>
+              <img src={ubLogo} alt="Universitas Brawijaya" className="h-6 w-auto object-contain" />
             </div>
           </div>
 
           {/* Navigasi */}
           <div>
-            <h3 className="text-white mb-4" style={{ fontSize: "0.875rem", fontWeight: 600 }}>Navigasi</h3>
+            <h3 className="text-white mb-4" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{t("footer.nav_title")}</h3>
             <ul className="flex flex-col gap-2">
               {[
-                { label: "Beranda", id: "home" as Page },
-                { label: "Koleksi Buku", id: "catalog" as Page },
+                { label: t("footer.nav_home"), id: "home" as Page },
+                { label: t("footer.nav_catalog"), id: "catalog" as Page },
               ].map((link) => (
                 <li key={link.label}>
                   <button
@@ -55,9 +57,9 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
 
           {/* Format Tersedia */}
           <div>
-            <h3 className="text-white mb-4" style={{ fontSize: "0.875rem", fontWeight: 600 }}>Format Tersedia</h3>
+            <h3 className="text-white mb-4" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{t("footer.format_title")}</h3>
             <ul className="flex flex-col gap-2">
-              {["Audio & Text-to-Speech", "PDF Aksesibel", "Buku DAISY", "Braille Digital (BRF)", "Font OpenDyslexic"].map((f) => (
+              {[t("footer.format_audio"), t("footer.format_pdf"), t("footer.format_daisy"), t("footer.format_braille"), t("footer.format_dyslexic")].map((f) => (
                 <li key={f} className="text-blue-300/60" style={{ fontSize: "0.85rem" }}>{f}</li>
               ))}
             </ul>
@@ -65,15 +67,15 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
 
           {/* Kontak */}
           <div id="contact">
-            <h3 className="text-white mb-4" style={{ fontSize: "0.875rem", fontWeight: 600 }}>Kontak PLD UB</h3>
+            <h3 className="text-white mb-4" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{t("footer.contact_title")}</h3>
             <div className="flex flex-col gap-3">
-              <a href="mailto:pld@ub.ac.id" className="flex items-start gap-2.5 text-blue-300/60 hover:text-white transition-colors" style={{ fontSize: "0.85rem" }}>
+              <a href="mailto:psldbrawijaya@ub.ac.id" className="flex items-start gap-2.5 text-blue-300/60 hover:text-white transition-colors" style={{ fontSize: "0.85rem" }}>
                 <Mail className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#00D4AC]" aria-hidden="true" />
                 pld@ub.ac.id
               </a>
               <div className="flex items-start gap-2.5 text-blue-300/60" style={{ fontSize: "0.85rem" }}>
                 <Phone className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#00D4AC]" aria-hidden="true" />
-                (0341) 575777 ext. 1234
+                +62 821-4412-5010
               </div>
               <div className="flex items-start gap-2.5 text-blue-300/60" style={{ fontSize: "0.85rem" }}>
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#00D4AC]" aria-hidden="true" />
@@ -87,7 +89,7 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
                 style={{ color: "#00D4AC", fontSize: "0.85rem", fontWeight: 500 }}
               >
                 <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
-                Website PLD UB
+                {t("footer.contact_web")}
               </a>
             </div>
           </div>
@@ -98,7 +100,7 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
       <div className="border-t border-white/8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-blue-300/40 text-center sm:text-left" style={{ fontSize: "0.78rem" }}>
-            © 2024 Pustakability — Pusat Layanan Disabilitas, Universitas Brawijaya.
+            {t("footer.copyright")}
           </p>
           <div className="flex items-center gap-4">
             <span
@@ -107,8 +109,8 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
             >
               WCAG 2.1 AA
             </span>
-            {["Kebijakan Privasi", "Syarat Penggunaan"].map(link => (
-              <a key={link} href="#" className="text-blue-300/40 hover:text-blue-300/70 transition-colors" style={{ fontSize: "0.78rem" }}>{link}</a>
+            {[{label: t("footer.privacy"), href: "#"}, {label: t("footer.terms"), href: "#"}].map(link => (
+              <a key={link.label} href={link.href} className="text-blue-300/40 hover:text-blue-300/70 transition-colors" style={{ fontSize: "0.78rem" }}>{link.label}</a>
             ))}
           </div>
         </div>

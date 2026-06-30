@@ -1,22 +1,26 @@
 import { UserPlus, ShieldCheck, Mail, BookOpen } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 interface HowToAccessSectionProps {
   darkMode: boolean;
 }
 
-const steps = [
-  { step: "01", icon: UserPlus, title: "Daftar ke PLD UB", desc: "Kunjungi Pusat Layanan Disabilitas UB di Gedung Rektorat Lt. 1, atau hubungi via email. Bawa dokumen identitas mahasiswa aktif.", color: "#0A1172" },
-  { step: "02", icon: ShieldCheck, title: "Verifikasi Status", desc: "Tim PLD UB akan melakukan assessment dan verifikasi status disabilitas cetak Anda (tunanetra, low vision, disleksia, atau gangguan fisik yang memengaruhi kemampuan membaca cetak).", color: "#0D7070" },
-  { step: "03", icon: Mail, title: "Aktivasi Akun", desc: "Terima email aktivasi dengan kredensial login Pustakability ke email UB Anda. Proses aktivasi membutuhkan 1–3 hari kerja.", color: "#3B5BDB" },
-  { step: "04", icon: BookOpen, title: "Mulai Membaca", desc: "Akses ribuan koleksi dalam format pilihan Anda kapan saja dan dari mana saja.", color: "#00D4AC" },
-];
+// Steps array will be generated dynamically
 
 export function HowToAccessSection({ darkMode: dm }: HowToAccessSectionProps) {
+  const { t } = useTranslation();
   const bg = dm ? "#0D1117" : "#F5F7FF";
   const text = dm ? "#F1F5F9" : "#0F1B35";
   const muted = dm ? "#94A3B8" : "#6B7280";
   const sectionLabelBg = dm ? "rgba(59,91,219,0.15)" : "rgba(10,17,114,0.06)";
   const sectionLabel = dm ? "rgba(147,197,253,0.8)" : "#0A1172";
+
+  const steps = [
+    { step: "01", icon: UserPlus, title: t("howToAccess.step1_title"), desc: t("howToAccess.step1_desc"), color: "#0A1172" },
+    { step: "02", icon: ShieldCheck, title: t("howToAccess.step2_title"), desc: t("howToAccess.step2_desc"), color: "#0D7070" },
+    { step: "03", icon: Mail, title: t("howToAccess.step3_title"), desc: t("howToAccess.step3_desc"), color: "#3B5BDB" },
+    { step: "04", icon: BookOpen, title: t("howToAccess.step4_title"), desc: t("howToAccess.step4_desc"), color: "#00D4AC" },
+  ];
 
   return (
     <section id="how" className="py-20" style={{ backgroundColor: bg }} aria-labelledby="how-heading">
@@ -26,11 +30,10 @@ export function HowToAccessSection({ darkMode: dm }: HowToAccessSectionProps) {
             Cara Mendapatkan Akses
           </div>
           <h2 id="how-heading" style={{ fontSize: "1.9rem", fontWeight: 700, color: text }}>
-            Empat Langkah Mudah
+            {t("howToAccess.title")}
           </h2>
           <p style={{ fontSize: "1rem", color: muted, marginTop: "0.75rem", maxWidth: "36rem", marginLeft: "auto", marginRight: "auto" }}>
-            Pustakability hanya tersedia untuk mahasiswa Universitas Brawijaya yang terdaftar
-            sebagai penyandang disabilitas cetak di PLD UB.
+            {t("howToAccess.desc")}
           </p>
         </div>
 
@@ -70,15 +73,15 @@ export function HowToAccessSection({ darkMode: dm }: HowToAccessSectionProps) {
           style={{ background: "linear-gradient(135deg, #0A1172, #132060)" }}
         >
           <div>
-            <h3 className="text-white mb-2" style={{ fontSize: "1.15rem", fontWeight: 600 }}>Butuh Bantuan Pendaftaran?</h3>
+            <h3 className="text-white mb-2" style={{ fontSize: "1.15rem", fontWeight: 600 }}>{t("howToAccess.contact_title")}</h3>
             <p className="text-blue-100" style={{ fontSize: "0.875rem", lineHeight: 1.6 }}>
-              Tim PLD UB siap membantu Anda melalui proses pendaftaran dan memastikan Anda mendapatkan akses ke format yang paling sesuai.
+              {t("howToAccess.contact_desc")}
             </p>
           </div>
           <div className="flex flex-col gap-3">
             {[
-              { icon: Mail, label: "pld@ub.ac.id", sub: "Email PLD UB" },
-              { icon: () => <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>, label: "(0341) 575777 ext. 1234", sub: "Telepon PLD UB" },
+              { icon: Mail, label: "pld@ub.ac.id", sub: t("howToAccess.contact_email_label") },
+              { icon: () => <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>, label: "(0341) 575777 ext. 1234", sub: t("howToAccess.contact_phone_label") },
             ].map((c, i) => {
               const CIcon = c.icon;
               return (

@@ -2,6 +2,7 @@ import { ArrowRight, Star, Lock, Eye } from "lucide-react";
 import { allBooks, categories, type Book } from "../data/books";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import type { UserRole, Page } from "../App";
+import { useTranslation } from "react-i18next";
 
 interface BookCatalogSectionProps {
   darkMode: boolean;
@@ -27,6 +28,7 @@ const formatColors: Record<string, string> = {
 };
 
 export function BookCard({ book, darkMode: dm, role, onOpenBook }: BookCardProps) {
+  const { t } = useTranslation();
   const isGuest = role === "guest";
   const card = dm ? "#1A2240" : "#FFFFFF";
   const border = dm ? "#1E2D4F" : "#F0F0F0";
@@ -40,13 +42,13 @@ export function BookCard({ book, darkMode: dm, role, onOpenBook }: BookCardProps
       onClick={() => onOpenBook(book.id)}
       tabIndex={0}
       onKeyDown={(e) => e.key === "Enter" && onOpenBook(book.id)}
-      aria-label={`${book.title} oleh ${book.author}${isGuest ? " — preview saja" : ""}`}
+      aria-label={`${book.title} ${isGuest ? t("catalog.login_prompt") : ""}`}
     >
       {/* Cover Image */}
       <div className="relative overflow-hidden" style={{ aspectRatio: "3/4" }}>
         <ImageWithFallback
           src={book.coverImage}
-          alt={`Sampul buku ${book.title}`}
+          alt={t("catalog.cover_alt")}
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
         {/* Overlay gradient */}
@@ -63,7 +65,7 @@ export function BookCard({ book, darkMode: dm, role, onOpenBook }: BookCardProps
           <div
             className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center"
             style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)" }}
-            aria-label="Perlu login untuk membaca penuh"
+            aria-label={t("catalog.login_prompt")}
           >
             <Lock className="w-4 h-4 text-white" />
           </div>
@@ -129,11 +131,11 @@ export function BookCard({ book, darkMode: dm, role, onOpenBook }: BookCardProps
           {isGuest ? (
             <>
               <Eye className="w-3.5 h-3.5" />
-              Preview
+              {t("catalog.btn_preview")}
             </>
           ) : (
             <>
-              Baca Sekarang
+              {t("catalog.btn_read")}
             </>
           )}
         </button>
@@ -143,6 +145,7 @@ export function BookCard({ book, darkMode: dm, role, onOpenBook }: BookCardProps
 }
 
 export function BookCatalogSection({ darkMode: dm, onNavigate, role, onOpenBook }: BookCatalogSectionProps) {
+  const { t } = useTranslation();
   const bg = dm ? "#0D1117" : "#FFFFFF";
   const text = dm ? "#F1F5F9" : "#0F1B35";
   const muted = dm ? "#94A3B8" : "#6B7280";
@@ -160,10 +163,10 @@ export function BookCatalogSection({ darkMode: dm, onNavigate, role, onOpenBook 
               className="inline-block px-3 py-1 rounded-full mb-3"
               style={{ backgroundColor: pillBg, color: dm ? "#93C5FD" : "#0A1172", fontSize: "0.8rem", fontWeight: 600 }}
             >
-              Koleksi Pilihan
+              {t("catalog.badge")}
             </div>
             <h2 id="catalog-heading" style={{ fontSize: "1.9rem", fontWeight: 700, color: text }}>
-              Temukan Buku yang Anda Butuhkan
+              {t("catalog.title")}
             </h2>
           </div>
           <button
@@ -171,7 +174,7 @@ export function BookCatalogSection({ darkMode: dm, onNavigate, role, onOpenBook 
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl transition-colors flex-shrink-0 text-white"
             style={{ backgroundColor: "#0A1172", fontSize: "0.875rem" }}
           >
-            Lihat Semua Koleksi
+            {t("catalog.btn_explore")}
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>
