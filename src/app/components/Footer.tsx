@@ -71,7 +71,7 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
             <div className="flex flex-col gap-3">
               <a href="mailto:psldbrawijaya@ub.ac.id" className="flex items-start gap-2.5 text-blue-300/60 hover:text-white transition-colors" style={{ fontSize: "0.85rem" }}>
                 <Mail className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#00D4AC]" aria-hidden="true" />
-                pld@ub.ac.id
+                psldbrawijaya@ub.ac.id
               </a>
               <div className="flex items-start gap-2.5 text-blue-300/60" style={{ fontSize: "0.85rem" }}>
                 <Phone className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#00D4AC]" aria-hidden="true" />
@@ -79,7 +79,7 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
               </div>
               <div className="flex items-start gap-2.5 text-blue-300/60" style={{ fontSize: "0.85rem" }}>
                 <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#00D4AC]" aria-hidden="true" />
-                Gedung Rektorat Lt. 1, UB, Malang 65145
+                Jl. MT. Haryono No.163, Lowokwaru, Kota Malang, Jawa Timur 65145, Indonesia
               </div>
               <a
                 href="https://pld.ub.ac.id"
