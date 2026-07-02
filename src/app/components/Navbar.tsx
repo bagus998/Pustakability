@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { Search, Menu, X, Moon, Sun, ChevronDown, LogOut, Shield, BookPlus } from "lucide-react";
 import type { AuthUser, UserRole, Page } from "../App";
-import logoImg from "../../imports/logo.png";
-import { useTranslation } from "react-i18next";
+import logoImg from "../../imports/Logo_Pustakability_square-01_1.png";
+import { useLanguage } from "../i18n/LanguageContext";
+import { t as T } from "../i18n/translations";
 
 interface NavbarProps {
   currentPage: Page;
@@ -15,33 +16,31 @@ interface NavbarProps {
 }
 
 const languages = [
-  { code: "id", label: "Indonesia", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Flag_of_Indonesia.svg/960px-Flag_of_Indonesia.svg.png", short: "ID" },
-  { code: "en", label: "English",   flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_the_United_States.svg/500px-Flag_of_the_United_States.svg.png", short: "EN" },
+  { code: "id", label: "Indonesia", flag: "🇮🇩", short: "ID" },
+  { code: "en", label: "English",   flag: "🇺🇸", short: "EN" },
 ];
 
 export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle, user, role, onLogout }: NavbarProps) {
-  const { t, i18n } = useTranslation();
   const [mobileOpen, setMobileOpen]   = useState(false);
   const [searchOpen, setSearchOpen]   = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [langOpen, setLangOpen]       = useState(false);
-  
-  const currentLang = languages.find(l => l.code === i18n.language) || languages[0];
-  const setLang = (l: typeof languages[0]) => i18n.changeLanguage(l.code);
+  const { lang: langCode, setLang: setLangCode, t } = useLanguage();
+  const lang = languages.find(l => l.code === langCode) ?? languages[0];
 
   const navBg     = dm ? "#0F1623" : "#0A1172";
   const navBorder = dm ? "#1E2D4F" : "rgba(255,255,255,0.1)";
 
   const navLinks = [
-    { id: "home"    as Page, label: t("navbar.home") },
-    { id: "catalog" as Page, label: t("navbar.catalog") },
+    { id: "home"    as Page, label: t(T.nav.home) },
+    { id: "catalog" as Page, label: t(T.nav.catalog) },
   ];
 
   const roleLabel: Record<UserRole, string> = {
-    admin:     "Administrator",
-    user:      "Pengguna",
-    volunteer: "Volunteer",
-    guest:     "Tamu",
+    admin:     t(T.role.admin),
+    user:      t(T.role.user),
+    volunteer: t(T.role.volunteer),
+    guest:     t(T.role.guest),
   };
 
   const roleBadgeColor: Record<UserRole, string> = {
@@ -70,7 +69,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
             <img
               src={logoImg}
               alt="Logo Pustakability"
-              className="w-10 h-10 object-contain"
+              className="w-9 h-9 object-contain"
               style={{ filter: dm ? "brightness(1.1)" : "brightness(1)" }}
             />
             <div className="flex flex-col text-left">
@@ -113,7 +112,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                 }}
               >
                 <Shield className="w-3.5 h-3.5" />
-                {t("navbar.admin")}
+                {t(T.nav.admin)}
               </button>
             )}
 
@@ -128,7 +127,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                 }}
               >
                 <BookPlus className="w-3.5 h-3.5" />
-                {t("navbar.volunteer")}
+                {t(T.nav.addBook)}
               </button>
             )}
           </div>
@@ -165,9 +164,9 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                 aria-expanded={langOpen}
                 aria-label="Pilih bahasa"
               >
-                <img src={currentLang.flag} alt={currentLang.label} className="w-5 h-auto rounded-sm shadow-sm" />
+                <span style={{ fontSize: "1rem" }}>{lang.flag}</span>
                 <span className="text-white" style={{ fontSize: "0.78rem", fontWeight: 500 }}>
-                  {currentLang.short}
+                  {lang.short}
                 </span>
                 <ChevronDown
                   className="w-3 h-3 transition-transform"
@@ -191,30 +190,30 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                       <button
                         key={l.code}
                         role="option"
-                        aria-selected={currentLang.code === l.code}
-                        onClick={() => { setLang(l); setLangOpen(false); }}
+                        aria-selected={lang.code === l.code}
+                        onClick={() => { setLangCode(l.code as "id" | "en"); setLangOpen(false); }}
                         className="w-full flex items-center gap-3 px-4 py-2.5 transition-colors text-left"
                         style={{
                           backgroundColor:
-                            currentLang.code === l.code
+                            lang.code === l.code
                               ? dm ? "rgba(59,91,219,0.2)" : "#EEF2FF"
                               : "transparent",
                           color: dm ? "#F1F5F9" : "#0F1B35",
                         }}
                         onMouseEnter={(e) => {
-                          if (currentLang.code !== l.code)
+                          if (lang.code !== l.code)
                             e.currentTarget.style.backgroundColor = dm ? "rgba(255,255,255,0.05)" : "#F9FAFB";
                         }}
                         onMouseLeave={(e) => {
-                          if (currentLang.code !== l.code)
+                          if (lang.code !== l.code)
                             e.currentTarget.style.backgroundColor = "transparent";
                         }}
                       >
-                        <img src={l.flag} alt={l.label} className="w-6 h-auto rounded-sm shadow-sm" />
-                        <span style={{ fontSize: "0.875rem", fontWeight: currentLang.code === l.code ? 600 : 400 }}>
+                        <span style={{ fontSize: "1.15rem" }}>{l.flag}</span>
+                        <span style={{ fontSize: "0.875rem", fontWeight: lang.code === l.code ? 600 : 400 }}>
                           {l.label}
                         </span>
-                        {currentLang.code === l.code && (
+                        {lang.code === l.code && (
                           <span className="ml-auto" style={{ color: "#3B5BDB", fontSize: "0.65rem", fontWeight: 700 }}>
                             ✓
                           </span>
@@ -285,7 +284,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                         >
                           <BookPlus className="w-4 h-4" />
-                          {t("navbar.catalog")}
+                          Jelajahi Koleksi
                         </button>
 
                         {(role === "volunteer" || role === "admin") && (
@@ -297,7 +296,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                           >
                             <BookPlus className="w-4 h-4" />
-                            {t("navbar.volunteer")}
+                            Tambah Buku
                           </button>
                         )}
 
@@ -310,7 +309,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                           >
                             <Shield className="w-4 h-4" />
-                            {t("navbar.admin")}
+                            Admin Dashboard
                           </button>
                         )}
 
@@ -324,7 +323,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                         >
                           <LogOut className="w-4 h-4" />
-                          {t("navbar.logout")}
+                          {t(T.nav.signOut)}
                         </button>
                       </div>
                     </div>
@@ -340,14 +339,14 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                   onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.color = "white"; }}
                   onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.75)"; }}
                 >
-                  {t("navbar.login")}
+                  {t(T.nav.signIn)}
                 </button>
                 <button
                   onClick={() => onNavigate("register")}
                   className="px-4 py-1.5 rounded-lg font-medium"
                   style={{ backgroundColor: "#00D4AC", color: "#0A1172", fontSize: "0.875rem" }}
                 >
-                  {t("navbar.register")}
+                  {t(T.nav.register)}
                 </button>
               </div>
             )}
@@ -404,7 +403,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
               )}
               {(role === "volunteer" || role === "admin") && (
                 <button onClick={() => { onNavigate("volunteer"); setMobileOpen(false); }} className="text-left px-3 py-2.5 rounded-lg text-white/80 hover:bg-white/10 flex items-center gap-2" style={{ fontSize: "0.875rem" }}>
-                  <BookPlus className="w-4 h-4" /> {t("navbar.volunteer")}
+                  <BookPlus className="w-4 h-4" /> Tambah Buku
                 </button>
               )}
 
@@ -413,16 +412,16 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                 {languages.map((l) => (
                   <button
                     key={l.code}
-                    onClick={() => setLang(l)}
+                    onClick={() => setLangCode(l.code as "id" | "en")}
                     className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-colors"
                     style={{
-                      backgroundColor: currentLang.code === l.code ? "rgba(255,255,255,0.15)" : "transparent",
+                      backgroundColor: lang.code === l.code ? "rgba(255,255,255,0.15)" : "transparent",
                       color: "white",
                       fontSize: "0.8rem",
-                      border: currentLang.code === l.code ? "1px solid rgba(255,255,255,0.3)" : "1px solid transparent",
+                      border: lang.code === l.code ? "1px solid rgba(255,255,255,0.3)" : "1px solid transparent",
                     }}
                   >
-                    <img src={l.flag} alt={l.label} className="w-5 h-auto rounded-sm shadow-sm" />
+                    <span>{l.flag}</span>
                     <span>{l.label}</span>
                   </button>
                 ))}
@@ -431,12 +430,12 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
               <div className="flex items-center gap-2 px-3 mt-1">
                 {user ? (
                   <button onClick={() => { onLogout(); setMobileOpen(false); }} className="flex items-center gap-2 px-4 py-1.5 rounded-lg border border-red-400/40 text-red-300" style={{ fontSize: "0.875rem" }}>
-                    <LogOut className="w-4 h-4" /> {t("navbar.logout")}
+                    <LogOut className="w-4 h-4" /> Keluar
                   </button>
                 ) : (
                   <>
-                    <button onClick={() => { onNavigate("login"); setMobileOpen(false); }} className="px-4 py-1.5 rounded-lg border border-white/20 text-white/80" style={{ fontSize: "0.875rem" }}>{t("navbar.login")}</button>
-                    <button onClick={() => { onNavigate("register"); setMobileOpen(false); }} className="px-4 py-1.5 rounded-lg font-medium" style={{ backgroundColor: "#00D4AC", color: "#0A1172", fontSize: "0.875rem" }}>{t("navbar.register")}</button>
+                    <button onClick={() => { onNavigate("login"); setMobileOpen(false); }} className="px-4 py-1.5 rounded-lg border border-white/20 text-white/80" style={{ fontSize: "0.875rem" }}>Masuk</button>
+                    <button onClick={() => { onNavigate("register"); setMobileOpen(false); }} className="px-4 py-1.5 rounded-lg font-medium" style={{ backgroundColor: "#00D4AC", color: "#0A1172", fontSize: "0.875rem" }}>Daftar</button>
                   </>
                 )}
               </div>

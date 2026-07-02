@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import { LanguageProvider, useLanguage } from "./i18n/LanguageContext";
+import { t as T } from "./i18n/translations";
+import { BookProvider, useBooks } from "./contexts/BookContext";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import { StatsSection } from "./components/StatsSection";
@@ -14,7 +16,6 @@ import { RegisterPage } from "./components/RegisterPage";
 import { EbookReader } from "./components/EbookReader";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { VolunteerDashboard } from "./components/VolunteerDashboard";
-import { allBooks } from "./data/books";
 
 export type UserRole = "admin" | "user" | "volunteer" | "guest";
 
@@ -33,14 +34,15 @@ const MOCK_CREDENTIALS = [
   { id: "3", email: "relawan@ub.ac.id", password: "Vol123", name: "Budi Santoso", role: "volunteer" as const },
 ];
 
-export default function App() {
-  const { t } = useTranslation();
+function AppInner() {
   const [page, setPage] = useState<Page>("home");
   const [user, setUser] = useState<AuthUser | null>(null);
   const [darkMode, setDarkMode] = useState(false);
   const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
 
   const role: UserRole = user?.role ?? "guest";
+  const { t } = useLanguage();
+  const { books } = useBooks();
 
   const navigateTo = (p: Page, bookId?: string) => {
     setPage(p);
@@ -69,7 +71,7 @@ export default function App() {
     window.scrollTo({ top: 0 });
   };
 
-  const selectedBook = allBooks.find((b) => b.id === selectedBookId) ?? allBooks[0];
+  const selectedBook = books.find((b) => b.id === selectedBookId) ?? books[0];
 
   const dm = darkMode;
 
@@ -121,31 +123,17 @@ export default function App() {
             <TestimonialsSection darkMode={dm} />
 
             {/* CTA Banner */}
-            <section
-              className="py-16"
-              style={{ background: "linear-gradient(135deg, #0A1172, #0D7070)" }}
-              aria-label="Ajakan bergabung"
-            >
+            <section className="py-16" style={{ background: "linear-gradient(135deg, #0A1172, #0D7070)" }} aria-label="CTA">
               <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h2 className="text-white" style={{ fontSize: "1.9rem", fontWeight: 700 }}>
-                  {t("cta.title")}
-                </h2>
-                <p className="mt-3 mb-8 text-blue-100" style={{ fontSize: "1rem" }}>
-                  {t("cta.desc")}
-                </p>
+                <h2 className="text-white" style={{ fontSize: "1.9rem", fontWeight: 700 }}>{t(T.cta.title)}</h2>
+                <p className="mt-3 mb-8 text-blue-100" style={{ fontSize: "1rem" }}>{t(T.cta.body)}</p>
                 <div className="flex flex-wrap gap-4 justify-center">
-                  <button
-                    onClick={() => navigateTo("catalog")}
-                    className="px-8 py-3.5 rounded-xl font-semibold bg-white text-[#0A1172] hover:bg-gray-50 transition-colors"
-                  >
-                    {t("cta.btn_explore")}
+                  <button onClick={() => navigateTo("catalog")} className="px-8 py-3.5 rounded-xl font-semibold bg-white text-[#0A1172] hover:bg-gray-50 transition-colors">
+                    {t(T.cta.browse)}
                   </button>
                   {!user && (
-                    <button
-                      onClick={() => navigateTo("register")}
-                      className="px-8 py-3.5 rounded-xl font-medium border border-white/40 text-white hover:bg-white/10 transition-colors"
-                    >
-                      {t("cta.btn_register")}
+                    <button onClick={() => navigateTo("register")} className="px-8 py-3.5 rounded-xl font-medium border border-white/40 text-white hover:bg-white/10 transition-colors">
+                      {t(T.cta.register)}
                     </button>
                   )}
                 </div>
@@ -218,5 +206,15 @@ export default function App() {
       {/* Footer — hidden in ebook reader */}
       {page !== "ebook" && <Footer darkMode={dm} onNavigate={navigateTo} />}
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <LanguageProvider>
+      <BookProvider>
+        <AppInner />
+      </BookProvider>
+    </LanguageProvider>
   );
 }

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Eye, EyeOff, BookOpen, ArrowLeft } from "lucide-react";
-import { useTranslation } from "react-i18next";
 import type { Page } from "../App";
 
 interface LoginPageProps {
@@ -16,7 +15,6 @@ const demoAccounts = [
 ];
 
 export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps) {
-  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -40,7 +38,7 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
     if (ok) {
       onNavigate("home");
     } else {
-      setError(t("login.error_mismatch"));
+      setError("Email atau kata sandi tidak sesuai. Coba akun demo di bawah.");
     }
   };
 
@@ -63,7 +61,7 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
           style={{ color: muted, fontSize: "0.875rem" }}
         >
           <ArrowLeft className="w-4 h-4" />
-          {t("login.back_to_home")}
+          Kembali ke Beranda
         </button>
 
         <div
@@ -79,10 +77,10 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
               <BookOpen className="w-7 h-7 text-white" />
             </div>
             <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: text }}>
-              {t("login.title")}
+              Masuk ke Pustakability
             </h1>
             <p style={{ fontSize: "0.875rem", color: muted, marginTop: "0.375rem" }}>
-              {t("login.subtitle")}
+              Akses koleksi digital aksesibel Universitas Brawijaya
             </p>
           </div>
 
@@ -92,7 +90,7 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
             style={{ backgroundColor: dm ? "#0A1172/20" : "#EEF2FF", border: `1px solid ${dm ? "#1E3A8A" : "#C7D2FE"}` }}
           >
             <p style={{ fontSize: "0.75rem", fontWeight: 600, color: dm ? "#93C5FD" : "#3730A3", marginBottom: "0.5rem" }}>
-              {t("login.demo_title")}
+              Akun Demo — klik untuk mengisi otomatis:
             </p>
             <div className="flex flex-wrap gap-2">
               {demoAccounts.map((acc) => (
@@ -116,14 +114,14 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
                 htmlFor="login-email"
                 style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}
               >
-                {t("login.email_label")}
+                Email UB
               </label>
               <input
                 id="login-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder={t("login.student_email")}
+                placeholder="mahasiswa@ub.ac.id"
                 required
                 className="w-full px-4 py-3 rounded-xl outline-none transition-all"
                 style={{
@@ -143,7 +141,7 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
                 htmlFor="login-password"
                 style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}
               >
-                {t("login.password_label")}
+                Kata Sandi
               </label>
               <div className="relative">
                 <input
@@ -151,7 +149,7 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder={t("login.password_placeholder")}
+                  placeholder="Masukkan kata sandi"
                   required
                   className="w-full px-4 py-3 pr-12 rounded-xl outline-none transition-all"
                   style={{
@@ -197,32 +195,32 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
                 cursor: loading ? "not-allowed" : "pointer",
               }}
             >
-              {loading ? t("login.btn_processing") : t("login.btn_login")}
+              {loading ? "Memproses..." : "Masuk"}
             </button>
           </form>
 
           {/* Register link */}
           <p className="text-center mt-6" style={{ fontSize: "0.875rem", color: muted }}>
-            {t("login.no_account")}{" "}
+            Belum punya akun?{" "}
             <button
               onClick={() => onNavigate("register")}
               style={{ color: "#3B5BDB", fontWeight: 500 }}
               className="hover:underline"
             >
-              {t("login.register_now")}
+              Daftar Sekarang
             </button>
           </p>
         </div>
 
         {/* Guest option */}
         <p className="text-center mt-4" style={{ fontSize: "0.8rem", color: muted }}>
-          {t("login.guest_prompt")}{" "}
+          Hanya ingin melihat-lihat?{" "}
           <button
             onClick={() => onNavigate("catalog")}
             style={{ color: "#00D4AC", fontWeight: 500 }}
             className="hover:underline"
           >
-            {t("login.guest_link")}
+            Jelajahi sebagai tamu →
           </button>
         </p>
       </div>
