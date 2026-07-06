@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { Search, Menu, X, Moon, Sun, ChevronDown, LogOut, Shield, BookPlus } from "lucide-react";
 import type { AuthUser, UserRole, Page } from "../App";
-import logoImg from "../../imports/Logo_Pustakability_square-01_1.png";
+import logoImg from "../../imports/Logo_Pustakability_square-01.png";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
+
 
 interface NavbarProps {
   currentPage: Page;
@@ -16,8 +17,8 @@ interface NavbarProps {
 }
 
 const languages = [
-  { code: "id", label: "Indonesia", flag: "🇮🇩", short: "ID" },
-  { code: "en", label: "English",   flag: "🇺🇸", short: "EN" },
+  { code: "id", label: "Indonesia", flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Flag_of_Indonesia.svg/960px-Flag_of_Indonesia.svg.png", short: "ID" },
+  { code: "en", label: "English",   flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_the_United_States.svg/500px-Flag_of_the_United_States.svg.png", short: "EN" },
 ];
 
 export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle, user, role, onLogout }: NavbarProps) {
@@ -69,7 +70,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
             <img
               src={logoImg}
               alt="Logo Pustakability"
-              className="w-9 h-9 object-contain"
+              className="w-10 h-10 object-contain"
               style={{ filter: dm ? "brightness(1.1)" : "brightness(1)" }}
             />
             <div className="flex flex-col text-left">
@@ -164,7 +165,12 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                 aria-expanded={langOpen}
                 aria-label="Pilih bahasa"
               >
-                <span style={{ fontSize: "1rem" }}>{lang.flag}</span>
+                <img
+                  src={lang.flag}
+                  alt={`${lang.label} flag`}
+                  className="w-5 h-auto rounded-sm shadow-sm"
+                  loading="lazy"
+                />
                 <span className="text-white" style={{ fontSize: "0.78rem", fontWeight: 500 }}>
                   {lang.short}
                 </span>
@@ -209,7 +215,11 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                             e.currentTarget.style.backgroundColor = "transparent";
                         }}
                       >
-                        <span style={{ fontSize: "1.15rem" }}>{l.flag}</span>
+                        <img
+                          src={l.flag}
+                          alt={`${l.label} flag`}
+                          className="w-6 h-auto rounded-sm shadow-sm"
+                        />
                         <span style={{ fontSize: "0.875rem", fontWeight: lang.code === l.code ? 600 : 400 }}>
                           {l.label}
                         </span>
@@ -421,7 +431,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                       border: lang.code === l.code ? "1px solid rgba(255,255,255,0.3)" : "1px solid transparent",
                     }}
                   >
-                    <span>{l.flag}</span>
+                    <img src={l.flag} alt={l.label} className="w-5 h-auto rounded-sm shadow-sm" />
                     <span>{l.label}</span>
                   </button>
                 ))}
