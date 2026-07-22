@@ -4,6 +4,8 @@ import type { Book } from "../data/books";
 import type { UserRole, Page } from "../App";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { apiFetchChapters, type ApiChapter } from "../api/books";
+import { useLanguage } from "../i18n/LanguageContext";
+import { t as T } from "../i18n/translations";
 
 interface EbookReaderProps {
   book:             Book;
@@ -15,6 +17,7 @@ interface EbookReaderProps {
 }
 
 export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onDarkModeToggle }: EbookReaderProps) {
+  const { t } = useLanguage();
   const [currentChapter, setCurrentChapter] = useState(0);
   const [sidebarOpen,    setSidebarOpen]    = useState(true);
   const [apiChapters,    setApiChapters]    = useState<ApiChapter[] | null>(null);
@@ -96,7 +99,7 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
             style={{ color: mutedText }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = dm ? "#1E2D4F" : "#F3F4F6")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-            aria-label={sidebarOpen ? "Sembunyikan daftar isi" : "Tampilkan daftar isi"}
+            aria-label={sidebarOpen ? t(T.ebook.toggleSidebar) : t(T.ebook.toggleSidebar)}
             aria-expanded={sidebarOpen}
           >
             <Menu className="w-5 h-5" aria-hidden="true" />
@@ -134,7 +137,7 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
               aria-label="Mode preview — login untuk akses penuh"
             >
               <Lock className="w-3.5 h-3.5" aria-hidden="true" />
-              Mode Preview
+              {t(T.ebook.previewMode)}
             </div>
           )}
 
@@ -144,7 +147,7 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
             style={{ color: mutedText }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = dm ? "#1E2D4F" : "#F3F4F6")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-            aria-label={dm ? "Ganti ke mode terang" : "Ganti ke mode gelap"}
+            aria-label={dm ? t(T.nav.lightMode) : t(T.nav.darkMode)}
             aria-pressed={dm}
           >
             {dm ? <Sun className="w-5 h-5" aria-hidden="true" /> : <Moon className="w-5 h-5" aria-hidden="true" />}
@@ -156,7 +159,7 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
             style={{ color: mutedText }}
             onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = dm ? "#1E2D4F" : "#F3F4F6")}
             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-            aria-label="Tutup pembaca buku"
+            aria-label={t(T.ebook.close)}
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>
@@ -171,18 +174,18 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
           <aside
             className="w-64 flex-shrink-0 overflow-y-auto"
             style={{ backgroundColor: sidebar, borderRight: `1px solid ${sdBorder}` }}
-            aria-label="Daftar isi buku"
+            aria-label={t(T.ebook.toc)}
           >
             <nav className="p-4">
               <h2
                 style={{ fontSize: "0.72rem", fontWeight: 700, color: mutedText, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.75rem" }}
                 id="toc-heading"
               >
-                Daftar Isi
+                {t(T.ebook.toc)}
               </h2>
 
               {chaptersLoading ? (
-                <div className="flex items-center gap-2 py-4 justify-center" aria-live="polite" aria-label="Memuat daftar isi...">
+                <div className="flex items-center gap-2 py-4 justify-center" aria-live="polite" aria-label="Memuat...">
                   <Loader2 className="w-4 h-4 animate-spin" style={{ color: mutedText }} />
                   <span style={{ fontSize: "0.8rem", color: mutedText }}>Memuat...</span>
                 </div>
@@ -205,7 +208,7 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
                             lineHeight: 1.4,
                           }}
                           aria-current={currentChapter === i ? "true" : undefined}
-                          aria-label={locked ? `${ch.title} — terkunci, login untuk membaca` : ch.title}
+                          aria-label={locked ? `${ch.title} — ${t(T.ebook.locked)}` : ch.title}
                         >
                           {locked ? (
                             <Lock className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
@@ -235,17 +238,17 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
                 <div
                   className="mt-4 p-3 rounded-xl"
                   style={{ backgroundColor: dm ? "#1E2D4F" : "#EEF2FF", border: `1px solid ${dm ? "#2A3F6F" : "#C7D2FE"}` }}
-                  aria-label={`${previewCount} dari ${chapters.length} bab tersedia untuk tamu`}
+                  aria-label={`${previewCount} dari ${chapters.length} ${t(T.ebook.availableChapters)}`}
                 >
                   <p style={{ fontSize: "0.75rem", color: dm ? "#93C5FD" : "#3730A3", lineHeight: 1.5 }}>
-                    {previewCount} dari {chapters.length} bab tersedia untuk tamu.
+                    {previewCount} {t(T.register.of)} {chapters.length} {t(T.ebook.availableChapters)}
                   </p>
                   <button
                     onClick={() => onNavigate("register")}
                     className="mt-2 w-full py-1.5 rounded-lg text-white"
                     style={{ backgroundColor: "#3B5BDB", fontSize: "0.75rem", fontWeight: 600 }}
                   >
-                    Daftar untuk Akses Penuh
+                    {t(T.ebook.registerFull)}
                   </button>
                 </div>
               )}
@@ -264,27 +267,27 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
           {chaptersLoading ? (
             <div className="flex flex-col items-center gap-3 py-20" aria-live="polite" role="status">
               <Loader2 className="w-10 h-10 animate-spin" style={{ color: "#3B5BDB" }} aria-hidden="true" />
-              <p style={{ color: mutedText }}>Memuat konten buku...</p>
+              <p style={{ color: mutedText }}>Memuat...</p>
             </div>
           ) : isLocked ? (
             /* Lock Screen */
-            <div className="flex flex-col items-center justify-center flex-1 max-w-md text-center py-20" role="main" aria-label="Konten terkunci">
+            <div className="flex flex-col items-center justify-center flex-1 max-w-md text-center py-20" role="main" aria-label={t(T.ebook.locked)}>
               <div className="w-20 h-20 rounded-2xl flex items-center justify-center mb-6" style={{ backgroundColor: dm ? "#1E2D4F" : "#EEF2FF" }}>
                 <Lock className="w-10 h-10" style={{ color: "#3B5BDB" }} aria-hidden="true" />
               </div>
               <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: bodyText, marginBottom: "0.75rem" }}>
-                Konten Terkunci
+                {t(T.ebook.locked)}
               </h1>
               <p style={{ fontSize: "0.95rem", color: mutedText, lineHeight: 1.7, marginBottom: "1.5rem" }}>
-                Anda telah membaca bagian preview. Daftar sebagai pengguna Pustakability untuk mengakses{" "}
-                <strong>{chapters.length} bab</strong> penuh dari buku ini.
+                {t(T.ebook.lockedBody)}{" "}
+                <strong>{chapters.length} {t(T.ebook.previewChaptersLeft)}</strong> {t(T.ebook.lockedBodyEnd)}
               </p>
               <div className="flex flex-col gap-3 w-full">
                 <button onClick={() => onNavigate("register")} className="py-3.5 rounded-xl font-semibold text-white" style={{ background: "linear-gradient(135deg, #0A1172, #3B5BDB)", fontSize: "1rem" }}>
-                  Daftar Sekarang — Gratis
+                  {t(T.ebook.registerFree)}
                 </button>
                 <button onClick={() => onNavigate("login")} className="py-3 rounded-xl" style={{ border: `1.5px solid ${dm ? "#1E2D4F" : "#E5E7EB"}`, color: bodyText, fontSize: "0.9rem" }}>
-                  Sudah punya akun? Masuk
+                  {t(T.ebook.hasAccount)}
                 </button>
               </div>
             </div>
@@ -294,7 +297,6 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
               className="w-full max-w-2xl rounded-2xl shadow-sm"
               style={{ backgroundColor: readingBg, border: `1px solid ${dm ? "#1E2D4F" : "#F0F0F0"}` }}
               aria-labelledby={`ch-title-${currentChapter}`}
-              lang="id"
             >
               {/* Chapter header */}
               <header
@@ -305,7 +307,7 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
                   style={{ fontSize: "0.72rem", color: mutedText, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: "0.5rem" }}
                   aria-hidden="true"
                 >
-                  Bab {currentChapter + 1} dari {canReadFull ? chapters.length : previewCount}
+                  {t(T.ebook.chapter)} {currentChapter + 1} {t(T.register.of)} {canReadFull ? chapters.length : previewCount}
                 </p>
                 <h1
                   id={`ch-title-${currentChapter}`}
@@ -335,17 +337,16 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
                   <div
                     className="mt-8 p-6 rounded-xl text-center"
                     style={{ backgroundColor: dm ? "#1E2D4F" : "#EEF2FF", border: `2px dashed ${dm ? "#2A3F6F" : "#C7D2FE"}` }}
-                    aria-label="Akhir dari preview. Daftar untuk membaca selengkapnya."
                   >
                     <BookOpen className="w-8 h-8 mx-auto mb-3" style={{ color: "#3B5BDB" }} aria-hidden="true" />
                     <p style={{ fontSize: "0.9rem", fontWeight: 600, color: dm ? "#93C5FD" : "#3730A3" }}>
-                      Ini adalah akhir dari preview bab pertama
+                      {t(T.ebook.previewEnd)}
                     </p>
                     <p style={{ fontSize: "0.8rem", color: mutedText, marginTop: "0.375rem", marginBottom: "1rem" }}>
-                      Daftar gratis untuk membaca {chapters.length - 1} bab berikutnya
+                      {t(T.ebook.previewPrompt)} {chapters.length - 1} {t(T.ebook.previewChaptersLeft)}
                     </p>
                     <button onClick={() => onNavigate("register")} className="px-6 py-2.5 rounded-xl text-white font-semibold" style={{ background: "linear-gradient(135deg, #0A1172, #3B5BDB)", fontSize: "0.875rem" }}>
-                      Daftar Sekarang
+                      {t(T.cta.register)}
                     </button>
                   </div>
                 )}
@@ -373,16 +374,16 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
               cursor: currentChapter === 0 ? "not-allowed" : "pointer",
               fontSize: "0.85rem",
             }}
-            aria-label="Bab sebelumnya"
+            aria-label={t(T.ebook.prevChapter)}
           >
             <ChevronLeft className="w-4 h-4" aria-hidden="true" />
-            Bab Sebelumnya
+            {t(T.ebook.prevChapter)}
           </button>
 
           <div
             style={{ fontSize: "0.8rem", color: mutedText }}
             aria-live="polite"
-            aria-label={`Bab ${currentChapter + 1} dari ${canReadFull ? chapters.length : previewCount}`}
+            aria-label={`${t(T.ebook.chapter)} ${currentChapter + 1} ${t(T.register.of)} ${canReadFull ? chapters.length : previewCount}`}
           >
             {currentChapter + 1} / {canReadFull ? chapters.length : previewCount}
           </div>
@@ -397,9 +398,9 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
               cursor: currentChapter >= (canReadFull ? chapters.length - 1 : previewCount - 1) ? "not-allowed" : "pointer",
               fontSize: "0.85rem",
             }}
-            aria-label="Bab berikutnya"
+            aria-label={t(T.ebook.nextChapter)}
           >
-            Bab Berikutnya
+            {t(T.ebook.nextChapter)}
             <ChevronRight className="w-4 h-4" aria-hidden="true" />
           </button>
         </footer>

@@ -18,6 +18,9 @@ import { t as T } from "../i18n/translations";
 interface AdminDashboardProps {
   darkMode: boolean;
   onNavigate: (page: Page) => void;
+  users?: AppUser[];
+  onUpdateUser?: (id: string, updates: Partial<AppUser>) => void;
+  onDeleteUser?: (id: string) => void;
 }
 
 type Tab = "overview" | "users" | "books" | "validasi";
@@ -37,7 +40,7 @@ const statusColors: Record<string, { bg: string; text: string }> = {
   suspended: { bg: "#FEE2E2", text: "#991B1B" },
 };
 
-export function AdminDashboard({ darkMode: dm, onNavigate }: AdminDashboardProps) {
+export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, onUpdateUser, onDeleteUser }: AdminDashboardProps) {
   const { t } = useLanguage();
   const {
     books, pendingBooks,
@@ -54,14 +57,27 @@ export function AdminDashboard({ darkMode: dm, onNavigate }: AdminDashboardProps
   const [editChaptersBook, setEditChaptersBook] = useState<Book | null>(null);
 
   // user state + modals
-  const [users,      setUsers]      = useState<AppUser[]>(INITIAL_USERS);
+  const [internalUsers, setInternalUsers] = useState<AppUser[]>(INITIAL_USERS);
   const [editUser,   setEditUser]   = useState<AppUser | null>(null);
   const [deleteUser, setDeleteUser] = useState<AppUser | null>(null);
 
-  const handleUpdateUser = (id: string, updates: Partial<AppUser>) =>
-    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updates } : u)));
-  const handleDeleteUser = (id: string) =>
-    setUsers((prev) => prev.filter((u) => u.id !== id));
+  const users = propsUsers ?? internalUsers;
+
+  const handleUpdateUser = (id: string, updates: Partial<AppUser>) => {
+    if (onUpdateUser) {
+      onUpdateUser(id, updates);
+    } else {
+      setInternalUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updates } : u)));
+    }
+  };
+
+  const handleDeleteUser = (id: string) => {
+    if (onDeleteUser) {
+      onDeleteUser(id);
+    } else {
+      setInternalUsers((prev) => prev.filter((u) => u.id !== id));
+    }
+  };
 
   const bg       = dm ? "#0D1117" : "#F5F7FF";
   const card     = dm ? "#161B2E" : "#FFFFFF";
@@ -256,6 +272,17 @@ export function AdminDashboard({ darkMode: dm, onNavigate }: AdminDashboardProps
                           <td style={{ ...tdStyle, color: muted }}>{u.joined}</td>
                           <td style={tdStyle}>
                             <div className="flex items-center gap-1.5">
+                              {u.status === "pending" && (
+                                <button
+                                  onClick={() => handleUpdateUser(u.id, { status: "active" })}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium text-white transition-opacity hover:opacity-90"
+                                  style={{ backgroundColor: "#16A34A", fontSize: "0.78rem" }}
+                                  title={`Setujui Akun: ${u.name}`}
+                                >
+                                  <UserCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                                  {t(T.admin.validation.approve)}
+                                </button>
+                              )}
                               <button
                                 onClick={() => setEditUser(u)}
                                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium"

@@ -17,6 +17,67 @@ app.use(
   })
 );
 
+// Security Headers Middleware
+app.use("*", async (c, next) => {
+  await next();
+  c.header("X-Content-Type-Options", "nosniff");
+  c.header("X-Frame-Options", "DENY");
+  c.header("X-XSS-Protection", "1; mode=block");
+  c.header("Referrer-Policy", "strict-origin-when-cross-origin");
+});
+
+// Security Utilities: Input Sanitization (XSS Defense)
+function sanitizeString(str: any): string {
+  if (typeof str !== "string") return str ?? "";
+  return str
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/on\w+\s*=\s*(["']).*?\1/gi, "")
+    .replace(/javascript:[^\s"']+/gi, "")
+    .replace(/[<>]/g, (t) => (t === "<" ? "&lt;" : "&gt;"))
+    .trim();
+}
+
+// Security Utilities: Web Crypto Password Hashing (SHA-256)
+const PASSWORD_SALT = "PustakabilitySecuritySalt2024!";
+async function hashPassword(plain: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(plain + PASSWORD_SALT);
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+// Security Utilities: Rate Limiter (Brute Force / DDoS Defense)
+const failedAttemptsMap = new Map<string, { count: number; lockUntil: number }>();
+
+function checkRateLimit(key: string, maxAttempts = 5, windowMs = 15 * 60 * 1000): { allowed: boolean; remainingMs: number } {
+  const now = Date.now();
+  const record = failedAttemptsMap.get(key);
+  if (!record) return { allowed: true, remainingMs: 0 };
+  if (now < record.lockUntil) {
+    return { allowed: false, remainingMs: record.lockUntil - now };
+  }
+  if (now - record.lockUntil > windowMs) {
+    failedAttemptsMap.delete(key);
+    return { allowed: true, remainingMs: 0 };
+  }
+  return { allowed: true, remainingMs: 0 };
+}
+
+function recordFailedAttempt(key: string, maxAttempts = 5, windowMs = 15 * 60 * 1000) {
+  const now = Date.now();
+  const record = failedAttemptsMap.get(key) || { count: 0, lockUntil: 0 };
+  record.count += 1;
+  if (record.count >= maxAttempts) {
+    record.lockUntil = now + windowMs;
+  }
+  failedAttemptsMap.set(key, record);
+}
+
+function clearFailedAttempts(key: string) {
+  failedAttemptsMap.delete(key);
+}
+
 const BUCKET = "make-d4405fa6-books";
 const P = "pustaka:"; // key prefix
 
@@ -295,6 +356,173 @@ app.delete("/make-server-d4405fa6/books/:id", async (c) => {
     return c.json({ success: true });
   } catch (e) {
     console.log("DELETE /books error:", e);
+    return c.json({ error: String(e) }, 500);
+  }
+});
+
+// ── Users & Auth ───────────────────────────────────────────────────
+const INITIAL_DEFAULT_USERS = [
+  { id: "1", name: "Administrator", email: "admin@ub.ac.id", password: "Admin123", role: "admin", faculty: "Rektorat", status: "active", joined: "2024-01-01" },
+  { id: "2", name: "Siti Rahayu", email: "mahasiswa@ub.ac.id", password: "User123", role: "user", faculty: "MIPA", status: "active", joined: "2024-03-10" },
+  { id: "3", name: "Budi Santoso", email: "relawan@ub.ac.id", password: "Vol123", role: "volunteer", faculty: "Teknik", status: "active", joined: "2024-01-20" },
+  { id: "4", name: "Ahmad Fauzan", email: "ahmad@student.ub.ac.id", password: "User123", role: "user", faculty: "Hukum", status: "active", joined: "2024-02-15" },
+  { id: "5", name: "Rizky Pratama", email: "rizky@student.ub.ac.id", password: "User123", role: "user", faculty: "Teknik", status: "pending", joined: "2024-04-01" },
+  { id: "6", name: "Dewi Lestari", email: "dewi@student.ub.ac.id", password: "Vol123", role: "volunteer", faculty: "Ilmu Budaya", status: "active", joined: "2024-03-25" },
+];
+
+async function ensureSeedUsers() {
+  const existingUsers = await kv.getByPrefix(`${P}user:`);
+  const missingDefaults = INITIAL_DEFAULT_USERS.filter(
+    (def) => !existingUsers.some((u: any) => u.email?.toLowerCase() === def.email.toLowerCase())
+  );
+  if (missingDefaults.length > 0) {
+    const hashedDefaults = await Promise.all(
+      missingDefaults.map(async (u) => ({
+        ...u,
+        passwordHash: await hashPassword(u.password),
+      }))
+    );
+    const keys = hashedDefaults.map((u) => `${P}user:${u.id}`);
+    await kv.mset(keys, hashedDefaults);
+    console.log(`Seeded ${hashedDefaults.length} hashed default users to Supabase`);
+    return await kv.getByPrefix(`${P}user:`);
+  }
+  return existingUsers;
+}
+
+// GET /users
+app.get("/make-server-d4405fa6/users", async (c) => {
+  try {
+    const users = await ensureSeedUsers();
+    // Strip password and passwordHash from user list output for security
+    const safeUsers = users.map(({ password, passwordHash, ...rest }) => rest);
+    return c.json({ users: safeUsers });
+  } catch (e) {
+    console.log("GET /users error:", e);
+    return c.json({ error: String(e) }, 500);
+  }
+});
+
+// POST /auth/login
+app.post("/make-server-d4405fa6/auth/login", async (c) => {
+  try {
+    const { email, password } = await c.req.json();
+    const cleanEmail = sanitizeString(email).toLowerCase();
+
+    // 1. Rate limiting check (Brute Force / DDoS Defense)
+    const rateCheck = checkRateLimit(cleanEmail);
+    if (!rateCheck.allowed) {
+      return c.json(
+        { error: "Too many failed login attempts. Account temporarily locked.", reason: "ratelimit" },
+        429
+      );
+    }
+
+    const users = await ensureSeedUsers();
+    const inputHash = await hashPassword(password);
+
+    // 2. Compare password (supporting both hashed and fallback plain text)
+    const found = users.find((u: any) => {
+      const isEmailMatch = u.email?.toLowerCase() === cleanEmail;
+      if (!isEmailMatch) return false;
+      if (u.passwordHash && u.passwordHash === inputHash) return true;
+      if (u.password && (u.password === password || u.password === inputHash)) return true;
+      return false;
+    });
+
+    if (!found) {
+      recordFailedAttempt(cleanEmail);
+      return c.json({ error: "Invalid credentials", reason: "invalid" }, 401);
+    }
+
+    // Clear failed attempts on successful authentication
+    clearFailedAttempts(cleanEmail);
+
+    if (found.status === "pending") {
+      return c.json({ error: "Account pending verification", reason: "pending" }, 403);
+    }
+    if (found.status === "suspended") {
+      return c.json({ error: "Account suspended", reason: "invalid" }, 403);
+    }
+
+    const { password: _, passwordHash: __, ...userWithoutPassword } = found;
+    return c.json({ user: userWithoutPassword });
+  } catch (e) {
+    console.log("POST /auth/login error:", e);
+    return c.json({ error: String(e) }, 500);
+  }
+});
+
+// POST /users — Register user
+app.post("/make-server-d4405fa6/users", async (c) => {
+  try {
+    const body = await c.req.json();
+    const { name, email, password, role, faculty, nim, disability } = body;
+
+    // 1. Input Sanitization (XSS Defense)
+    const cleanName = sanitizeString(name);
+    const cleanEmail = sanitizeString(email).toLowerCase();
+    const cleanFaculty = sanitizeString(faculty);
+    const cleanNim = sanitizeString(nim);
+    const cleanDisability = sanitizeString(disability);
+
+    if (!cleanName || !cleanEmail || !password || !role) {
+      return c.json({ error: "Missing required fields" }, 400);
+    }
+
+    const users = await ensureSeedUsers();
+    if (users.some((u: any) => u.email?.toLowerCase() === cleanEmail)) {
+      return c.json({ error: "Email is already registered" }, 400);
+    }
+
+    // 2. Web Crypto Password Hashing
+    const passwordHash = await hashPassword(password);
+
+    const newUser = {
+      id: crypto.randomUUID(),
+      name: cleanName,
+      email: cleanEmail,
+      passwordHash,
+      role: role || "user",
+      faculty: cleanFaculty || "General",
+      nim: cleanNim || "",
+      disability: cleanDisability || "",
+      status: "pending",
+      joined: new Date().toISOString().split("T")[0],
+      createdAt: new Date().toISOString(),
+    };
+
+    await kv.set(`${P}user:${newUser.id}`, newUser);
+    const { passwordHash: _, ...safeUser } = newUser;
+    return c.json({ user: safeUser });
+  } catch (e) {
+    console.log("POST /users error:", e);
+    return c.json({ error: String(e) }, 500);
+  }
+});
+
+// PUT /users/:id
+app.put("/make-server-d4405fa6/users/:id", async (c) => {
+  try {
+    const id = c.req.param("id");
+    const existing = await kv.get(`${P}user:${id}`);
+    if (!existing) return c.json({ error: "User not found" }, 404);
+    const updates = await c.req.json();
+    const updated = { ...existing, ...updates, updatedAt: new Date().toISOString() };
+    await kv.set(`${P}user:${id}`, updated);
+    return c.json({ user: updated });
+  } catch (e) {
+    return c.json({ error: String(e) }, 500);
+  }
+});
+
+// DELETE /users/:id
+app.delete("/make-server-d4405fa6/users/:id", async (c) => {
+  try {
+    const id = c.req.param("id");
+    await kv.del(`${P}user:${id}`);
+    return c.json({ success: true });
+  } catch (e) {
     return c.json({ error: String(e) }, 500);
   }
 });

@@ -1,26 +1,22 @@
 import { useState } from "react";
 import { Eye, EyeOff, BookOpen, ArrowLeft, CheckCircle } from "lucide-react";
 import type { Page } from "../App";
+import { useLanguage } from "../i18n/LanguageContext";
+import { t as T } from "../i18n/translations";
 
 interface RegisterPageProps {
   darkMode: boolean;
   onNavigate: (page: Page) => void;
+  onRegister?: (userData: {
+    name: string;
+    email: string;
+    password: string;
+    role: "user" | "volunteer";
+    faculty: string;
+    nim: string;
+    disability?: string;
+  }) => void;
 }
-
-const roleOptions = [
-  {
-    value: "user",
-    label: "Pengguna (Mahasiswa)",
-    desc: "Akses penuh ke seluruh koleksi e-book. Untuk penyandang disabilitas cetak yang terdaftar di PLD UB.",
-    color: "#0A1172",
-  },
-  {
-    value: "volunteer",
-    label: "Relawan (Volunteer)",
-    desc: "Dapat berkontribusi menambahkan buku ke koleksi, dengan validasi dari admin sebelum ditampilkan.",
-    color: "#0D7070",
-  },
-];
 
 const disabilityTypes = [
   "Tunanetra (total)",
@@ -30,9 +26,10 @@ const disabilityTypes = [
   "Lainnya",
 ];
 
-export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
+export function RegisterPage({ darkMode: dm, onNavigate, onRegister }: RegisterPageProps) {
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
-  const [selectedRole, setSelectedRole] = useState("user");
+  const [selectedRole, setSelectedRole] = useState<"user" | "volunteer">("user");
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -42,9 +39,25 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
     password: "",
     confirmPassword: "",
   });
+  const [errors, setErrors] = useState<{ nim?: string; email?: string }>({});
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [done, setDone] = useState(false);
+
+  const roleOptions = [
+    {
+      value: "user" as const,
+      label: t(T.register.roles.user.label),
+      desc: t(T.register.roles.user.desc),
+      color: "#0A1172",
+    },
+    {
+      value: "volunteer" as const,
+      label: t(T.register.roles.volunteer.label),
+      desc: t(T.register.roles.volunteer.desc),
+      color: "#0D7070",
+    },
+  ];
 
   const bg = dm ? "#0D1117" : "#F5F7FF";
   const card = dm ? "#161B2E" : "#FFFFFF";
@@ -64,11 +77,66 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
     outline: "none",
   };
 
+  const validateStep1 = () => {
+    const errs: { nim?: string; email?: string } = {};
+
+    // NIM validation: digits only, 8-18 chars
+    const isNimValid = /^\d{8,18}$/.test(form.nim.trim());
+    if (!isNimValid) {
+      errs.nim = t(T.register.nimError);
+    }
+
+    // Email validation:
+    const cleanEmail = form.email.trim().toLowerCase();
+    if (selectedRole === "user") {
+      if (!cleanEmail.endsWith("@student.ub.ac.id")) {
+        errs.email = t(T.register.emailErrorUser);
+      }
+    } else {
+      if (!cleanEmail.endsWith("@student.ub.ac.id") && !cleanEmail.endsWith("@ub.ac.id")) {
+        errs.email = t(T.register.emailErrorVol);
+      }
+    }
+
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (step === 1) { setStep(2); return; }
+    if (step === 1) {
+      if (!validateStep1()) return;
+      setStep(2);
+      return;
+    }
+
+    // Validate password complexity
+    const isPassValid =
+      form.password.length >= 8 &&
+      /[A-Z]/.test(form.password) &&
+      /[0-9]/.test(form.password);
+    if (!isPassValid) {
+      setErrors({ email: t(T.register.passwordWeakError) });
+      return;
+    }
+
+    if (form.password !== form.confirmPassword) {
+      return;
+    }
+
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
+    await new Promise((r) => setTimeout(r, 1000));
+    
+    onRegister?.({
+      name: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+      role: selectedRole,
+      faculty: form.faculty,
+      nim: form.nim.trim(),
+      disability: form.disability,
+    });
+
     setLoading(false);
     setDone(true);
   };
@@ -86,18 +154,18 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
           <div className="w-16 h-16 rounded-full mx-auto mb-4 flex items-center justify-center bg-green-100">
             <CheckCircle className="w-9 h-9 text-green-600" />
           </div>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: text }}>Pendaftaran Berhasil!</h2>
+          <h2 style={{ fontSize: "1.5rem", fontWeight: 700, color: text }}>{t(T.register.successTitle)}</h2>
           <p style={{ fontSize: "0.9rem", color: muted, marginTop: "0.75rem", lineHeight: 1.6 }}>
             {selectedRole === "user"
-              ? "Akun Anda sedang diverifikasi oleh tim PLD UB. Kami akan mengirimkan email aktivasi ke alamat email Anda dalam 1–3 hari kerja."
-              : "Pendaftaran volunteer Anda sedang direview oleh admin. Anda akan mendapat notifikasi via email setelah disetujui."}
+              ? t(T.register.successBodyUser)
+              : t(T.register.successBodyVol)}
           </p>
           <button
             onClick={() => onNavigate("login")}
             className="mt-6 w-full py-3.5 rounded-xl font-semibold text-white"
             style={{ background: "linear-gradient(135deg, #0A1172, #3B5BDB)", fontSize: "1rem" }}
           >
-            Kembali ke Login
+            {t(T.register.backToLogin)}
           </button>
         </div>
       </div>
@@ -112,11 +180,11 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
       <div className="w-full max-w-lg">
         <button
           onClick={() => (step > 1 ? setStep(1) : onNavigate("login"))}
-          className="flex items-center gap-2 mb-6 transition-colors"
+          className="flex items-center gap-2 mb-6 transition-colors hover:opacity-80"
           style={{ color: muted, fontSize: "0.875rem" }}
         >
           <ArrowLeft className="w-4 h-4" />
-          {step > 1 ? "Kembali ke Langkah 1" : "Sudah punya akun? Masuk"}
+          {step > 1 ? t(T.register.backToStep1) : t(T.register.back)}
         </button>
 
         <div
@@ -131,9 +199,9 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
             >
               <BookOpen className="w-7 h-7 text-white" />
             </div>
-            <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: text }}>Daftar Pustakability</h1>
+            <h1 style={{ fontSize: "1.5rem", fontWeight: 700, color: text }}>{t(T.register.title)}</h1>
             <p style={{ fontSize: "0.875rem", color: muted, marginTop: "0.375rem" }}>
-              Langkah {step} dari 2
+              {t(T.register.step)} {step} {t(T.register.of)} 2
             </p>
           </div>
 
@@ -153,7 +221,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                   {s}
                 </div>
                 <span style={{ fontSize: "0.78rem", color: step >= s ? (dm ? "#93C5FD" : "#0A1172") : muted, fontWeight: step >= s ? 500 : 400 }}>
-                  {s === 1 ? "Peran & Info" : "Keamanan"}
+                  {s === 1 ? t(T.register.step1Label) : t(T.register.step2Label)}
                 </span>
                 {s < 2 && <div className="flex-1 h-px" style={{ backgroundColor: border }} />}
               </div>
@@ -166,7 +234,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                 {/* Role Selection */}
                 <div>
                   <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.5rem" }}>
-                    Saya mendaftar sebagai:
+                    {t(T.register.roleLabel)}
                   </label>
                   <div className="grid sm:grid-cols-2 gap-3">
                     {roleOptions.map((opt) => (
@@ -194,49 +262,71 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                 <div className="grid sm:grid-cols-2 gap-4">
                   <div>
                     <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                      Nama Lengkap
+                      {t(T.register.nameLabel)}
                     </label>
                     <input
                       type="text"
                       value={form.name}
                       onChange={(e) => setForm({ ...form, name: e.target.value })}
-                      placeholder="Nama sesuai KTM"
+                      placeholder={t(T.register.namePh)}
                       required
                       style={inputStyle}
                     />
                   </div>
                   <div>
                     <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                      NIM
+                      {t(T.register.nimLabel)}
                     </label>
                     <input
                       type="text"
                       value={form.nim}
-                      onChange={(e) => setForm({ ...form, nim: e.target.value })}
-                      placeholder="Nomor Induk Mahasiswa"
+                      onChange={(e) => {
+                        setForm({ ...form, nim: e.target.value });
+                        if (errors.nim) setErrors((prev) => ({ ...prev, nim: undefined }));
+                      }}
+                      placeholder={t(T.register.nimPh)}
                       required
-                      style={inputStyle}
+                      style={{
+                        ...inputStyle,
+                        borderColor: errors.nim ? "#EF4444" : border,
+                      }}
                     />
+                    {errors.nim && (
+                      <p style={{ fontSize: "0.75rem", color: "#EF4444", marginTop: "0.25rem" }}>
+                        {errors.nim}
+                      </p>
+                    )}
                   </div>
                 </div>
 
                 <div>
                   <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                    Email UB
+                    {t(T.register.emailLabel)}
                   </label>
                   <input
                     type="email"
                     value={form.email}
-                    onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    placeholder="nim@student.ub.ac.id"
+                    onChange={(e) => {
+                      setForm({ ...form, email: e.target.value });
+                      if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
+                    }}
+                    placeholder={selectedRole === "user" ? "nim@student.ub.ac.id" : "nama@ub.ac.id"}
                     required
-                    style={inputStyle}
+                    style={{
+                      ...inputStyle,
+                      borderColor: errors.email ? "#EF4444" : border,
+                    }}
                   />
+                  {errors.email && (
+                    <p style={{ fontSize: "0.75rem", color: "#EF4444", marginTop: "0.25rem" }}>
+                      {errors.email}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                    Fakultas
+                    {t(T.register.facultyLabel)}
                   </label>
                   <select
                     value={form.faculty}
@@ -244,7 +334,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                     required
                     style={{ ...inputStyle, cursor: "pointer" }}
                   >
-                    <option value="">Pilih Fakultas</option>
+                    <option value="">{t(T.register.facultyPh)}</option>
                     {["Hukum", "Ilmu Administrasi", "Pertanian", "Teknik", "Kedokteran", "Perikanan & Ilmu Kelautan", "Peternakan", "Ilmu Sosial & Ilmu Politik", "Ilmu Budaya", "MIPA", "Teknologi Pertanian", "Ekonomi & Bisnis", "Ilmu Komputer", "Ilmu Kesehatan", "Vokasi"].map(f => (
                       <option key={f} value={f}>{f}</option>
                     ))}
@@ -254,7 +344,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                 {selectedRole === "user" && (
                   <div>
                     <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                      Jenis Disabilitas Cetak
+                      {t(T.register.disabilityLabel)}
                     </label>
                     <select
                       value={form.disability}
@@ -262,13 +352,13 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                       required
                       style={{ ...inputStyle, cursor: "pointer" }}
                     >
-                      <option value="">Pilih jenis disabilitas</option>
+                      <option value="">{t(T.register.disabilityPh)}</option>
                       {disabilityTypes.map((d) => (
                         <option key={d} value={d}>{d}</option>
                       ))}
                     </select>
                     <p style={{ fontSize: "0.75rem", color: muted, marginTop: "0.375rem" }}>
-                      Verifikasi oleh tim PLD UB diperlukan sebelum akun aktif.
+                      {t(T.register.disabilityNote)}
                     </p>
                   </div>
                 )}
@@ -279,14 +369,14 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
               <>
                 <div>
                   <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                    Kata Sandi
+                    {t(T.register.passwordLabel)}
                   </label>
-                  <div className="relative">
+                  <div className="relative mb-2">
                     <input
                       type={showPassword ? "text" : "password"}
                       value={form.password}
                       onChange={(e) => setForm({ ...form, password: e.target.value })}
-                      placeholder="Minimal 8 karakter"
+                      placeholder={t(T.register.passwordPh)}
                       required
                       minLength={8}
                       style={{ ...inputStyle, paddingRight: "3rem" }}
@@ -300,17 +390,38 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                       {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
                   </div>
+
+                  {/* Password Strength Checklist */}
+                  <div className="rounded-xl p-3 mb-4" style={{ backgroundColor: inputBg, border: `1px solid ${border}` }}>
+                    <p style={{ fontSize: "0.75rem", fontWeight: 600, color: muted, marginBottom: "0.375rem" }}>
+                      Kriteria Keamanan Kata Sandi:
+                    </p>
+                    <div className="flex flex-col gap-1 text-xs">
+                      <div className="flex items-center gap-2" style={{ color: form.password.length >= 8 ? "#10B981" : muted }}>
+                        <span>{form.password.length >= 8 ? "✓" : "○"}</span>
+                        <span>{t(T.register.passwordLength)}</span>
+                      </div>
+                      <div className="flex items-center gap-2" style={{ color: /[A-Z]/.test(form.password) ? "#10B981" : muted }}>
+                        <span>{/[A-Z]/.test(form.password) ? "✓" : "○"}</span>
+                        <span>{t(T.register.passwordUppercase)}</span>
+                      </div>
+                      <div className="flex items-center gap-2" style={{ color: /[0-9]/.test(form.password) ? "#10B981" : muted }}>
+                        <span>{/[0-9]/.test(form.password) ? "✓" : "○"}</span>
+                        <span>{t(T.register.passwordNumber)}</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
                   <label style={{ fontSize: "0.875rem", fontWeight: 500, color: text, display: "block", marginBottom: "0.375rem" }}>
-                    Konfirmasi Kata Sandi
+                    {t(T.register.confirmLabel)}
                   </label>
                   <input
                     type={showPassword ? "text" : "password"}
                     value={form.confirmPassword}
                     onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-                    placeholder="Ulangi kata sandi"
+                    placeholder={t(T.register.confirmPh)}
                     required
                     style={{
                       ...inputStyle,
@@ -319,7 +430,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                   />
                   {form.confirmPassword && form.confirmPassword !== form.password && (
                     <p style={{ fontSize: "0.75rem", color: "#EF4444", marginTop: "0.25rem" }}>
-                      Kata sandi tidak cocok
+                      {t(T.register.confirmError)}
                     </p>
                   )}
                 </div>
@@ -330,12 +441,12 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                   style={{ backgroundColor: dm ? "#0A1172/20" : "#EEF2FF", border: `1px solid ${dm ? "#1E3A8A" : "#C7D2FE"}` }}
                 >
                   <p style={{ fontSize: "0.8rem", fontWeight: 600, color: dm ? "#93C5FD" : "#3730A3", marginBottom: "0.5rem" }}>
-                    Ringkasan Pendaftaran
+                    {t(T.register.summary)}
                   </p>
                   <div style={{ fontSize: "0.8rem", color: dm ? "#BAE6FD" : "#1E3A8A", lineHeight: 1.7 }}>
                     <div>Nama: <strong>{form.name || "—"}</strong></div>
                     <div>Email: <strong>{form.email || "—"}</strong></div>
-                    <div>Peran: <strong>{selectedRole === "user" ? "Pengguna" : "Volunteer"}</strong></div>
+                    <div>Peran: <strong>{selectedRole === "user" ? t(T.register.roles.user.label) : t(T.register.roles.volunteer.label)}</strong></div>
                     {form.disability && <div>Disabilitas: <strong>{form.disability}</strong></div>}
                   </div>
                 </div>
@@ -343,8 +454,10 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                 <div className="flex items-start gap-2">
                   <input type="checkbox" id="agree" required className="mt-1" />
                   <label htmlFor="agree" style={{ fontSize: "0.8rem", color: muted, lineHeight: 1.5 }}>
-                    Saya menyetujui <span style={{ color: "#3B5BDB" }}>Syarat & Ketentuan</span> dan{" "}
-                    <span style={{ color: "#3B5BDB" }}>Kebijakan Privasi</span> Pustakability PLD UB.
+                    {t(T.register.agreeText)}{" "}
+                    <span style={{ color: "#3B5BDB" }}>{t(T.register.terms)}</span>{" "}
+                    {t(T.register.and)}{" "}
+                    <span style={{ color: "#3B5BDB" }}>{t(T.register.privacy)}</span> Pustakability PLD UB.
                   </label>
                 </div>
               </>
@@ -360,7 +473,7 @@ export function RegisterPage({ darkMode: dm, onNavigate }: RegisterPageProps) {
                 cursor: (loading || (step === 2 && form.password !== form.confirmPassword)) ? "not-allowed" : "pointer",
               }}
             >
-              {loading ? "Memproses..." : step === 1 ? "Lanjutkan →" : "Daftar Sekarang"}
+              {loading ? t(T.register.submitting) : step === 1 ? t(T.register.next) : t(T.register.submit)}
             </button>
           </form>
         </div>

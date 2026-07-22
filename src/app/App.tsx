@@ -17,6 +17,16 @@ import { EbookReader } from "./components/EbookReader";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { VolunteerDashboard } from "./components/VolunteerDashboard";
 
+import type { AppUser } from "./components/EditUserModal";
+import {
+  apiFetchUsers,
+  apiLoginUser,
+  apiRegisterUser,
+  apiUpdateUser,
+  apiDeleteUser,
+} from "./api/users";
+import { useEffect } from "react";
+
 export type UserRole = "admin" | "user" | "volunteer" | "guest";
 
 export interface AuthUser {
@@ -28,17 +38,69 @@ export interface AuthUser {
 
 export type Page = "home" | "catalog" | "login" | "register" | "ebook" | "admin" | "volunteer";
 
-const MOCK_CREDENTIALS = [
-  { id: "1", email: "admin@ub.ac.id", password: "Admin123", name: "Administrator", role: "admin" as const },
-  { id: "2", email: "mahasiswa@ub.ac.id", password: "User123", name: "Siti Rahayu", role: "user" as const },
-  { id: "3", email: "relawan@ub.ac.id", password: "Vol123", name: "Budi Santoso", role: "volunteer" as const },
+const INITIAL_USERS: AppUser[] = [
+  { id: "1", name: "Administrator", email: "admin@ub.ac.id", password: "Admin123", role: "admin", faculty: "Rektorat", status: "active", joined: "2024-01-01" },
+  { id: "2", name: "Siti Rahayu", email: "mahasiswa@ub.ac.id", password: "User123", role: "user", faculty: "MIPA", status: "active", joined: "2024-03-10" },
+  { id: "3", name: "Budi Santoso", email: "relawan@ub.ac.id", password: "Vol123", role: "volunteer", faculty: "Teknik", status: "active", joined: "2024-01-20" },
+  { id: "4", name: "Ahmad Fauzan", email: "ahmad@student.ub.ac.id", password: "User123", role: "user", faculty: "Hukum", status: "active", joined: "2024-02-15" },
+  { id: "5", name: "Rizky Pratama", email: "rizky@student.ub.ac.id", password: "User123", role: "user", faculty: "Teknik", status: "pending", joined: "2024-04-01" },
+  { id: "6", name: "Dewi Lestari", email: "dewi@student.ub.ac.id", password: "Vol123", role: "volunteer", faculty: "Ilmu Budaya", status: "active", joined: "2024-03-25" },
 ];
 
 function AppInner() {
-  const [page, setPage] = useState<Page>("home");
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [page, setPage] = useState<Page>(() => {
+    const saved = localStorage.getItem("pustakability_page");
+    const validPages: Page[] = ["home", "catalog", "login", "register", "ebook", "admin", "volunteer"];
+    return saved && validPages.includes(saved as Page) ? (saved as Page) : "home";
+  });
+
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    try {
+      const saved = localStorage.getItem("pustakability_user");
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  const [users, setUsers] = useState<AppUser[]>(INITIAL_USERS);
   const [darkMode, setDarkMode] = useState(false);
-  const [selectedBookId, setSelectedBookId] = useState<string | null>(null);
+
+  const [selectedBookId, setSelectedBookId] = useState<string | null>(() => {
+    return localStorage.getItem("pustakability_book");
+  });
+
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem("pustakability_user", JSON.stringify(user));
+    } else {
+      localStorage.removeItem("pustakability_user");
+    }
+  }, [user]);
+
+  useEffect(() => {
+    localStorage.setItem("pustakability_page", page);
+  }, [page]);
+
+  useEffect(() => {
+    if (selectedBookId) {
+      localStorage.setItem("pustakability_book", selectedBookId);
+    } else {
+      localStorage.removeItem("pustakability_book");
+    }
+  }, [selectedBookId]);
+
+  useEffect(() => {
+    apiFetchUsers()
+      .then((data) => {
+        if (data && data.length > 0) {
+          setUsers(data);
+        }
+      })
+      .catch((err) => {
+        console.warn("Could not fetch users from Supabase Edge Function, using fallback state:", err);
+      });
+  }, []);
 
   const role: UserRole = user?.role ?? "guest";
   const { t } = useLanguage();
@@ -50,18 +112,91 @@ function AppInner() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const login = (email: string, password: string): boolean => {
-    const found = MOCK_CREDENTIALS.find((u) => u.email === email && u.password === password);
-    if (found) {
-      setUser({ id: found.id, name: found.name, email: found.email, role: found.role });
-      return true;
+  const login = async (email: string, password: string): Promise<{ success: boolean; reason?: "invalid" | "pending" }> => {
+    let loggedUser: AuthUser | null = null;
+    try {
+      const res = await apiLoginUser(email, password);
+      if (res.success && res.user) {
+        loggedUser = { id: res.user.id, name: res.user.name, email: res.user.email, role: res.user.role };
+      } else if (res.reason === "pending") {
+        return { success: false, reason: "pending" };
+      }
+    } catch {
+      // API call failed
     }
-    return false;
+
+    if (!loggedUser) {
+      // Fallback check against local users list
+      const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && (u.password === password || (!u.password && password === "User123")));
+      if (!found) return { success: false, reason: "invalid" };
+      if (found.status === "pending") return { success: false, reason: "pending" };
+      loggedUser = { id: found.id, name: found.name, email: found.email, role: found.role };
+    }
+
+    setUser(loggedUser);
+    localStorage.setItem("pustakability_user", JSON.stringify(loggedUser));
+    return { success: true };
+  };
+
+  const registerUser = async (userData: {
+    name: string;
+    email: string;
+    password: string;
+    role: "user" | "volunteer";
+    faculty: string;
+    nim: string;
+    disability?: string;
+  }) => {
+    try {
+      const created = await apiRegisterUser(userData);
+      setUsers((prev) => [...prev, created]);
+      const fresh = await apiFetchUsers();
+      if (fresh?.length) setUsers(fresh);
+    } catch (err) {
+      console.warn("Failed to register in Supabase, using local fallback state:", err);
+      const newUser: AppUser = {
+        id: String(Date.now()),
+        name: userData.name,
+        email: userData.email,
+        password: userData.password,
+        role: userData.role,
+        faculty: userData.faculty,
+        status: "pending",
+        joined: new Date().toISOString().split("T")[0],
+      };
+      setUsers((prev) => [...prev, newUser]);
+    }
+  };
+
+  const updateUser = async (id: string, updates: Partial<AppUser>) => {
+    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updates } : u)));
+    try {
+      await apiUpdateUser(id, updates);
+      const fresh = await apiFetchUsers();
+      if (fresh?.length) setUsers(fresh);
+    } catch (err) {
+      console.warn("Failed to update user in Supabase:", err);
+    }
+  };
+
+  const deleteUser = async (id: string) => {
+    setUsers((prev) => prev.filter((u) => u.id !== id));
+    try {
+      await apiDeleteUser(id);
+      const fresh = await apiFetchUsers();
+      if (fresh?.length) setUsers(fresh);
+    } catch (err) {
+      console.warn("Failed to delete user in Supabase:", err);
+    }
   };
 
   const logout = () => {
     setUser(null);
     setPage("home");
+    setSelectedBookId(null);
+    localStorage.removeItem("pustakability_user");
+    localStorage.removeItem("pustakability_page");
+    localStorage.removeItem("pustakability_book");
     window.scrollTo({ top: 0 });
   };
 
@@ -154,7 +289,7 @@ function AppInner() {
 
         {/* ── Register Page ── */}
         {page === "register" && (
-          <RegisterPage darkMode={dm} onNavigate={navigateTo} />
+          <RegisterPage darkMode={dm} onNavigate={navigateTo} onRegister={registerUser} />
         )}
 
         {/* ── E-book Reader (full screen, no navbar/footer) ── */}
@@ -171,7 +306,13 @@ function AppInner() {
 
         {/* ── Admin Dashboard ── */}
         {page === "admin" && role === "admin" && (
-          <AdminDashboard darkMode={dm} onNavigate={navigateTo} />
+          <AdminDashboard
+            darkMode={dm}
+            onNavigate={navigateTo}
+            users={users}
+            onUpdateUser={updateUser}
+            onDeleteUser={deleteUser}
+          />
         )}
 
         {/* ── Volunteer Dashboard ── */}
