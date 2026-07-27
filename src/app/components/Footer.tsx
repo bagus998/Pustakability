@@ -8,9 +8,10 @@ import { t as T } from "../i18n/translations";
 interface FooterProps {
   darkMode: boolean;
   onNavigate: (page: Page) => void;
+  onOpenLegal?: (tab: "privacy" | "terms") => void;
 }
 
-export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
+export function Footer({ darkMode: dm, onNavigate, onOpenLegal }: FooterProps) {
   const { t } = useLanguage();
   const footerBg = dm ? "#050A14" : "#0F1B35";
 
@@ -54,7 +55,7 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
           <div>
             <h3 className="text-white mb-4" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{t(T.footer.formats)}</h3>
             <ul className="flex flex-col gap-2">
-              {[t(T.footer.formatList.audio), t(T.footer.formatList.pdf), t(T.footer.formatList.daisy), t(T.footer.formatList.braille), t(T.footer.formatList.font)].map((f) => (
+              {[t(T.footer.formatList.audio), t(T.footer.formatList.pdf), t(T.footer.formatList.daisy), t(T.footer.formatList.braille)].map((f) => (
                 <li key={f} className="text-blue-300/60" style={{ fontSize: "0.85rem" }}>{f}</li>
               ))}
             </ul>
@@ -64,18 +65,32 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
           <div id="contact">
             <h3 className="text-white mb-4" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{t(T.footer.contactTitle)}</h3>
             <div className="flex flex-col gap-3">
-              <a href="mailto:pld@ub.ac.id" className="flex items-start gap-2.5 text-blue-300/60 hover:text-white transition-colors" style={{ fontSize: "0.85rem" }}>
+              <a href="mailto:psldbrawijaya@ub.ac.id" className="flex items-start gap-2.5 text-blue-300/60 hover:text-white transition-colors" style={{ fontSize: "0.85rem" }}>
                 <Mail className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#00D4AC]" aria-hidden="true" />
-                pld@ub.ac.id
+                psldbrawijaya@ub.ac.id
               </a>
-              <div className="flex items-start gap-2.5 text-blue-300/60" style={{ fontSize: "0.85rem" }}>
-                <Phone className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#00D4AC]" aria-hidden="true" />
-                (0341) 575777 ext. 1234
-              </div>
-              <div className="flex items-start gap-2.5 text-blue-300/60" style={{ fontSize: "0.85rem" }}>
-                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#00D4AC]" aria-hidden="true" />
-                Gedung Rektorat Lt. 1, Universitas Brawijaya, Malang 65145
-              </div>
+              <a
+                href="https://api.whatsapp.com/send/?phone=6282144125010&text&type=phone_number&app_absent=0"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-2.5 text-blue-300/60 hover:text-white transition-colors group"
+                style={{ fontSize: "0.85rem" }}
+                aria-label="Hubungi PLD UB via WhatsApp (+62 821-4412-5010)"
+              >
+                <Phone className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#00D4AC] group-hover:scale-110 transition-transform" aria-hidden="true" />
+                <span>+62 821-4412-5010</span>
+              </a>
+              <a
+                href="https://maps.app.goo.gl/eCkT2R9hcDyZAVQX7"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-start gap-2.5 text-blue-300/60 hover:text-white transition-colors group"
+                style={{ fontSize: "0.85rem" }}
+                aria-label="Lokasi Rumah Layanan Disabilitas UB di Google Maps"
+              >
+                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-[#00D4AC] group-hover:scale-110 transition-transform" aria-hidden="true" />
+                <span>Rumah Layanan Disabilitas, Jalan Veteran, Ketawanggede, Kecamatan Lowokwaru, Kota Malang, Jawa Timur 65145</span>
+              </a>
               <a href="https://pld.ub.ac.id" target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 mt-1 hover:text-white transition-colors" style={{ color: "#00D4AC", fontSize: "0.85rem", fontWeight: 500 }}>
                 <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
                 {t(T.footer.websiteLabel)}
@@ -92,8 +107,20 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
             <span className="px-2 py-0.5 rounded-full border" style={{ backgroundColor: "rgba(22,163,74,0.15)", color: "#4ADE80", borderColor: "rgba(22,163,74,0.3)", fontSize: "0.7rem" }}>
               WCAG 2.1 AA
             </span>
-            <a href="#" className="text-blue-300/40 hover:text-blue-300/70 transition-colors" style={{ fontSize: "0.78rem" }}>{t(T.footer.privacy)}</a>
-            <a href="#" className="text-blue-300/40 hover:text-blue-300/70 transition-colors" style={{ fontSize: "0.78rem" }}>{t(T.footer.terms)}</a>
+            <button
+              onClick={() => onOpenLegal?.("privacy")}
+              className="text-blue-300/40 hover:text-blue-300/80 transition-colors"
+              style={{ fontSize: "0.78rem" }}
+            >
+              {t(T.footer.privacy)}
+            </button>
+            <button
+              onClick={() => onOpenLegal?.("terms")}
+              className="text-blue-300/40 hover:text-blue-300/80 transition-colors"
+              style={{ fontSize: "0.78rem" }}
+            >
+              {t(T.footer.terms)}
+            </button>
           </div>
         </div>
       </div>

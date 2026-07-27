@@ -1,4 +1,4 @@
-import { UserPlus, ShieldCheck, Mail, BookOpen } from "lucide-react";
+import { UserPlus, ShieldCheck, Mail, BookOpen, Phone } from "lucide-react";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
 
@@ -53,18 +53,20 @@ export function HowToAccessSection({ darkMode: dm }: HowToAccessSectionProps) {
             <p className="text-blue-100" style={{ fontSize: "0.875rem", lineHeight: 1.6 }}>{t(T.howTo.helpBody)}</p>
           </div>
           <div className="flex flex-col gap-3">
-            {[
-              { Icon: Mail, label: "pld@ub.ac.id", sub: "Email PLD UB" },
-              { Icon: () => <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1-9.4 0-17-7.6-17-17 0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1L6.6 10.8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none"/></svg>, label: "(0341) 575777 ext. 1234", sub: "Telepon PLD UB" },
-            ].map(({ Icon, label, sub }, i) => (
-              <div key={i} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10">
-                <Icon className="w-5 h-5 text-[#00D4AC] flex-shrink-0" />
-                <div>
-                  <div className="text-white" style={{ fontSize: "0.875rem", fontWeight: 500 }}>{label}</div>
-                  <div className="text-blue-300" style={{ fontSize: "0.75rem" }}>{sub}</div>
-                </div>
+            <a href="mailto:psldbrawijaya@ub.ac.id" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
+              <Mail className="w-5 h-5 text-[#00D4AC] flex-shrink-0" />
+              <div>
+                <div className="text-white" style={{ fontSize: "0.875rem", fontWeight: 500 }}>psldbrawijaya@ub.ac.id</div>
+                <div className="text-blue-300" style={{ fontSize: "0.75rem" }}>Email PLD UB</div>
               </div>
-            ))}
+            </a>
+            <a href="https://api.whatsapp.com/send/?phone=6282144125010&text&type=phone_number&app_absent=0" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-colors">
+              <Phone className="w-5 h-5 text-[#00D4AC] flex-shrink-0" />
+              <div>
+                <div className="text-white" style={{ fontSize: "0.875rem", fontWeight: 500 }}>+62 821-4412-5010</div>
+                <div className="text-blue-300" style={{ fontSize: "0.75rem" }}>WhatsApp PLD UB</div>
+              </div>
+            </a>
           </div>
         </div>
       </div>

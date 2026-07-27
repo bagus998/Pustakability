@@ -415,7 +415,7 @@ export const t = {
     formats:     { id: "Format Tersedia",       en: "Available Formats" },
     contactTitle:{ id: "Kontak PLD UB",         en: "Contact PLD UB" },
     websiteLabel:{ id: "Website PLD UB",        en: "PLD UB Website" },
-    copyright:   { id: "© 2024 Pustakability — Pusat Layanan Disabilitas, Universitas Brawijaya.", en: "© 2024 Pustakability — Disability Services Center, Universitas Brawijaya." },
+    copyright:   { id: "© 2026 Pustakability — Pusat Layanan Disabilitas, Universitas Brawijaya.", en: "© 2026 Pustakability — Disability Services Center, Universitas Brawijaya." },
     privacy:     { id: "Kebijakan Privasi",     en: "Privacy Policy" },
     terms:       { id: "Syarat Penggunaan",     en: "Terms of Use" },
     home:        { id: "Beranda",               en: "Home" },
@@ -425,8 +425,56 @@ export const t = {
       pdf:     { id: "PDF Aksesibel",            en: "Accessible PDF" },
       daisy:   { id: "Buku DAISY",              en: "DAISY Books" },
       braille: { id: "Braille Digital (BRF)",   en: "Digital Braille (BRF)" },
-      font:    { id: "Font OpenDyslexic",        en: "OpenDyslexic Font" },
     },
+  },
+
+  // ── Legal Modals ──────────────────────────────────────────
+  legal: {
+    privacyTitle: { id: "Kebijakan Privasi Pustakability", en: "Pustakability Privacy Policy" },
+    termsTitle:   { id: "Syarat Penggunaan Pustakability", en: "Pustakability Terms of Use" },
+    closeBtn:     { id: "Tutup", en: "Close" },
+    privacyContent: {
+      intro: {
+        id: "Pustakability berkomitmen menjaga kerahasiaan dan keamanan data pribadi seluruh pemustaka, mahasiswa, dan relawan di lingkungan Universitas Brawijaya.",
+        en: "Pustakability is committed to safeguarding the privacy and security of all library users, students, and volunteers within Universitas Brawijaya."
+      },
+      section1Title: { id: "1. Pengumpulan & Jenis Data", en: "1. Data Collection & Types" },
+      section1Body:  {
+        id: "Kami mengumpulkan informasi akun dasar mencakup Nama Lengkap, Email UB (@ub.ac.id / @student.ub.ac.id), NIM, Fakultas, dan status disabilitas yang diisi secara sukarela untuk keperluan autentikasi dan penyesuaian format aksesibilitas.",
+        en: "We collect basic account information including Full Name, UB Email (@ub.ac.id / @student.ub.ac.id), NIM, Faculty, and voluntary disability status for authentication and accessibility format customization."
+      },
+      section2Title: { id: "2. Penggunaan & Keamanan Data", en: "2. Data Usage & Security" },
+      section2Body:  {
+        id: "Data pribadi hanya digunakan untuk verifikasi anggota, penyediaan buku digital aksesibel, serta koordinasi layanan transkripsi dengan Pusat Layanan Disabilitas UB. Kredensial kata sandi dilindungi enkripsi SHA-256 dan data tidak pernah diperjualbelikan kepada pihak ketiga.",
+        en: "Personal data is strictly used for member verification, provision of accessible digital books, and transcription service coordination with UB Disability Services Center. Password credentials are secured using SHA-256 encryption and data is never sold to third parties."
+      },
+      section3Title: { id: "3. Hak & Kendali Pengguna", en: "3. User Rights & Control" },
+      section3Body:  {
+        id: "Pengguna berhak memperbarui data profil atau mengajukan penghapusan akun kapan saja dengan menghubungi tim admin PLD UB melalui psldbrawijaya@ub.ac.id.",
+        en: "Users reserve the right to update profile information or request account deletion at any time by contacting the PLD UB admin team at psldbrawijaya@ub.ac.id."
+      }
+    },
+    termsContent: {
+      intro: {
+        id: "Dengan mengakses atau menggunakan platform Pustakability, Anda menyetujui ketentuan dan syarat penggunaan di bawah ini.",
+        en: "By accessing or using the Pustakability platform, you agree to the terms and conditions outlined below."
+      },
+      section1Title: { id: "1. Hak Akses & Keanggotaan", en: "1. Access Rights & Eligibility" },
+      section1Body:  {
+        id: "Layanan pustaka digital ini dikhususkan bagi civitas akademika Universitas Brawijaya, terutama mahasiswa penyandang disabilitas cetak (print-disabled). Akun yang terdaftar harus diverifikasi oleh administrator sebelum mendapat akses penuh.",
+        en: "This accessible digital library is dedicated to Universitas Brawijaya students and academic community, especially students with print disabilities. Registered accounts must be verified by administrators prior to receiving full access."
+      },
+      section2Title: { id: "2. Hak Cipta & Penggunaan Berkelayakan (Fair Use)", en: "2. Copyright & Fair Use" },
+      section2Body:  {
+        id: "Seluruh koleksi e-book, DAISY, audio, dan Braille Digital disediakan semata-mata untuk keperluan pembelajaran dan penelitian non-komersial berdasarkan pengecualian hak cipta disabilitas. Dilarang keras menggandakan, mendistribusikan ulang, atau memperjualbelikan materi buku secara komersial.",
+        en: "All e-book, DAISY, audio, and Digital Braille materials are provided solely for non-commercial educational and research purposes under disability copyright exemptions. Unauthorized redistribution, copying, or commercial resale of materials is strictly prohibited."
+      },
+      section3Title: { id: "3. Tanggung Jawab & Kepatuhan WCAG 2.1 AA", en: "3. Account Responsibility & WCAG 2.1 AA Compliance" },
+      section3Body:  {
+        id: "Setiap pengguna bertanggung jawab atas keamanan kata sandi masing-masing. Pustakability menjamin kepatuhan standar aksesibilitas WCAG 2.1 Level AA untuk kenyamanan seluruh pemustaka.",
+        en: "Each user is responsible for maintaining the confidentiality of their password credentials. Pustakability commits to maintaining WCAG 2.1 Level AA accessibility standards for all users."
+      }
+    }
   },
 } as const;
 

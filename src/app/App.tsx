@@ -17,6 +17,7 @@ import { RegisterPage } from "./components/RegisterPage";
 import { EbookReader } from "./components/EbookReader";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { VolunteerDashboard } from "./components/VolunteerDashboard";
+import { LegalModal, type LegalTab } from "./components/LegalModal";
 
 import type { AppUser } from "./components/EditUserModal";
 import {
@@ -118,6 +119,7 @@ function AppInner() {
 
   const [users, setUsers] = useState<AppUser[]>(INITIAL_USERS);
   const [darkMode, setDarkMode] = useState(false);
+  const [legalTab, setLegalTab] = useState<LegalTab | null>(null);
 
   const [selectedBookId, setSelectedBookId] = useState<string | null>(() => {
     return getInitialUrlState().bookId;
@@ -451,7 +453,18 @@ function AppInner() {
       </main>
 
       {/* Footer — hidden in ebook reader */}
-      {page !== "ebook" && <Footer darkMode={dm} onNavigate={navigateTo} />}
+      {page !== "ebook" && (
+        <Footer darkMode={dm} onNavigate={navigateTo} onOpenLegal={(tab) => setLegalTab(tab)} />
+      )}
+
+      {/* Legal Modals (Privacy Policy & Terms of Use) */}
+      {legalTab && (
+        <LegalModal
+          initialTab={legalTab}
+          darkMode={dm}
+          onClose={() => setLegalTab(null)}
+        />
+      )}
     </div>
   );
 }

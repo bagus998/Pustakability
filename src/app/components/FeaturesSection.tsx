@@ -65,7 +65,7 @@ export function FeaturesSection({ darkMode: dm }: FeaturesSectionProps) {
             <div className="text-white font-semibold" style={{ fontSize: "0.95rem" }}>{t(T.features.wcagLabel)}</div>
             <div className="text-blue-100 mt-0.5" style={{ fontSize: "0.8rem" }}>
               {t(T.features.wcagBody)}{" "}
-              <span className="text-[#00D4AC]">pld@ub.ac.id</span>
+              <span className="text-[#00D4AC]">psldbrawijaya@ub.ac.id</span>
             </div>
           </div>
         </div>
