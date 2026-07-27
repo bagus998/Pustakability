@@ -100,6 +100,8 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
               </label>
               <input
                 id="login-email"
+                name="email"
+                autoComplete="username"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -128,6 +130,8 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
               <div className="relative">
                 <input
                   id="login-password"
+                  name="password"
+                  autoComplete="current-password"
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}

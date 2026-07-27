@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, BookOpen, ArrowLeft, CheckCircle } from "lucide-react";
+import { Eye, EyeOff, BookOpen, ArrowLeft, CheckCircle, Wand2 } from "lucide-react";
 import type { Page } from "../App";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
@@ -310,6 +310,8 @@ export function RegisterPage({ darkMode: dm, onNavigate, onRegister }: RegisterP
                       setForm({ ...form, email: e.target.value });
                       if (errors.email) setErrors((prev) => ({ ...prev, email: undefined }));
                     }}
+                    name="email"
+                    autoComplete="username"
                     placeholder={selectedRole === "user" ? "nim@student.ub.ac.id" : "nama@ub.ac.id"}
                     required
                     style={{
@@ -373,6 +375,9 @@ export function RegisterPage({ darkMode: dm, onNavigate, onRegister }: RegisterP
                   </label>
                   <div className="relative mb-2">
                     <input
+                      name="password"
+                      id="new-password"
+                      autoComplete="new-password"
                       type={showPassword ? "text" : "password"}
                       value={form.password}
                       onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -418,6 +423,9 @@ export function RegisterPage({ darkMode: dm, onNavigate, onRegister }: RegisterP
                     {t(T.register.confirmLabel)}
                   </label>
                   <input
+                    name="confirm-password"
+                    id="confirm-password"
+                    autoComplete="new-password"
                     type={showPassword ? "text" : "password"}
                     value={form.confirmPassword}
                     onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}

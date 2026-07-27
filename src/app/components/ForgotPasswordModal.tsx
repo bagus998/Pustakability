@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Mail, KeyRound, CheckCircle2, AlertCircle, ArrowLeft, ShieldCheck } from "lucide-react";
+import { X, Mail, KeyRound, CheckCircle2, AlertCircle, ArrowLeft, ShieldCheck, Wand2 } from "lucide-react";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
 import { apiForgotPassword, apiResetPassword } from "../api/users";
@@ -47,7 +47,7 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
     if (res.success) {
       if (res.code) {
         setSimulatedCode(res.code);
-        setCode(res.code); // Autofill for convenience in testing
+        setCode(""); // Leave empty so user types the code manually
       }
       showToast(`Kode konfirmasi telah dikirim ke ${email}`, "info");
       setStep(2);
@@ -61,6 +61,10 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
     e.preventDefault();
     setError("");
 
+    if (code.trim().length !== 6) {
+      setError("Masukkan 6 digit kode konfirmasi.");
+      return;
+    }
     if (newPassword.length < 6) {
       setError("Kata sandi baru minimal 6 karakter.");
       return;
@@ -165,19 +169,36 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
                   cursor: loading ? "not-allowed" : "pointer",
                 }}
               >
-                {loading ? "Sending Code..." : "Kirim Kode Konfirmasi via Email"}
+                {loading ? "Mengirim Kode..." : "Kirim Kode Konfirmasi via Email"}
               </button>
             </form>
           ) : (
             <form onSubmit={handleResetPassword} className="space-y-4">
               {simulatedCode && (
-                <div className="p-3.5 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-xs flex items-start gap-2.5">
-                  <ShieldCheck className="w-5 h-5 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <div className="font-semibold">Kode Konfirmasi Email Terkirim!</div>
-                    <div className="mt-0.5">
-                      Kode konfirmasi email 6-digit Anda: <strong className="text-emerald-500 font-mono text-sm tracking-widest">{simulatedCode}</strong>
+                <div className="p-3.5 rounded-xl border bg-blue-500/10 border-blue-500/30 text-xs space-y-2">
+                  <div className="flex items-center justify-between font-semibold border-b border-blue-500/20 pb-1.5" style={{ color: dm ? "#93C5FD" : "#1E40AF" }}>
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="w-4 h-4 text-[#00D4AC]" />
+                      <span>Simulasi Inbox Email ({email})</span>
                     </div>
+                    <span className="text-[0.65rem] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">15 Mins</span>
+                  </div>
+                  <div style={{ color: dm ? "#E2E8F0" : "#1E293B" }}>
+                    <strong>Subjek:</strong> Kode Konfirmasi Reset Kata Sandi
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                    <span style={{ color: muted }}>Kode Konfirmasi Anda:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setCode(simulatedCode);
+                        showToast("Kode disalin ke kolom input", "info");
+                      }}
+                      className="font-mono text-sm font-bold px-2.5 py-1 rounded bg-[#00D4AC]/20 text-[#00D4AC] hover:bg-[#00D4AC]/30 transition-colors"
+                      title="Klik untuk menyalin kode"
+                    >
+                      {simulatedCode} 📋
+                    </button>
                   </div>
                 </div>
               )}
@@ -215,7 +236,9 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
                 </label>
                 <input
                   id="new-password"
-                  type="password"
+                  name="new-password"
+                  autoComplete="new-password"
+                  type="text"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="Minimal 6 karakter"
@@ -239,7 +262,9 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
                 </label>
                 <input
                   id="confirm-password"
-                  type="password"
+                  name="confirm-password"
+                  autoComplete="new-password"
+                  type="text"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Ulangi kata sandi baru"

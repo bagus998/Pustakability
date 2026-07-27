@@ -202,16 +202,16 @@ app.post("/make-server-d4405fa6/books", async (c) => {
     await ensureBucket();
 
     const form = await c.req.formData();
-    const title       = (form.get("title") as string)?.trim();
-    const author      = (form.get("author") as string)?.trim();
-    const publisher   = (form.get("publisher") as string)?.trim() || "UB Press";
-    const category    = (form.get("category") as string)?.trim();
-    const year        = parseInt(form.get("year") as string) || new Date().getFullYear();
+    const title = (form.get("title") as string)?.trim();
+    const author = (form.get("author") as string)?.trim();
+    const publisher = (form.get("publisher") as string)?.trim() || "UB Press";
+    const category = (form.get("category") as string)?.trim();
+    const year = parseInt(form.get("year") as string) || new Date().getFullYear();
     const description = (form.get("description") as string)?.trim();
     const submittedBy = (form.get("submittedBy") as string)?.trim() || "volunteer";
-    const formats     = JSON.parse((form.get("formats") as string) || "[]") as string[];
-    const coverImage  = (form.get("coverImage") as string)?.trim() || "";
-    const file        = form.get("file") as File | null;
+    const formats = JSON.parse((form.get("formats") as string) || "[]") as string[];
+    const coverImage = (form.get("coverImage") as string)?.trim() || "";
+    const file = form.get("file") as File | null;
 
     if (!title || !author || !category) {
       return c.json({ error: "Missing required fields: title, author, category" }, 400);
@@ -493,6 +493,20 @@ app.post("/make-server-d4405fa6/users", async (c) => {
     };
 
     await kv.set(`${P}user:${newUser.id}`, newUser);
+
+    // Sync user into Supabase Auth system so built-in email reset recognizes the account
+    try {
+      await sb().auth.admin.createUser({
+        email: cleanEmail,
+        password: password,
+        email_confirm: true,
+        user_metadata: { name: cleanName, role: role || "user" },
+      });
+      console.log(`Synced ${cleanEmail} to Supabase Auth system`);
+    } catch (authErr: any) {
+      console.log("Supabase Auth admin createUser notice:", authErr.message);
+    }
+
     const { passwordHash: _, ...safeUser } = newUser;
     return c.json({ user: safeUser });
   } catch (e) {
@@ -524,6 +538,64 @@ app.post("/make-server-d4405fa6/auth/forgot-password", async (c) => {
 
     await kv.set(`${P}reset:${cleanEmail}`, { code, expiresAt, userId: foundUser.id });
     console.log(`Password reset code for ${cleanEmail}: ${code}`);
+
+    // Dispatch real email via Resend API (if RESEND_API_KEY is set in environment)
+    const resendKey = Deno.env.get("RESEND_API_KEY");
+    if (resendKey) {
+      try {
+        const mailRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: "Pustakability PLD UB <onboarding@resend.dev>",
+            to: [cleanEmail],
+            subject: "[Pustakability PLD UB] Kode Konfirmasi Reset Kata Sandi",
+            html: `
+              <div style="font-family: Arial, sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e5e7eb; border-radius: 12px; background-color: #ffffff;">
+                <h2 style="color: #0A1172; margin-top: 0;">Pustakability — PLD UB</h2>
+                <p style="color: #334155;">Halo,</p>
+                <p style="color: #334155;">Anda menerima email ini karena adanya permintaan reset kata sandi untuk akun Pustakability (<strong>${cleanEmail}</strong>).</p>
+                <div style="background-color: #F5F7FF; padding: 18px; text-align: center; border-radius: 10px; margin: 20px 0; border: 1px solid #DBEAEA;">
+                  <span style="font-size: 28px; font-weight: bold; letter-spacing: 6px; color: #3B5BDB; font-family: monospace;">${code}</span>
+                </div>
+                <p style="font-size: 13px; color: #64748B;">Kode ini berlaku selama 15 menit. Jika Anda tidak meminta reset kata sandi, silakan abaikan email ini.</p>
+                <hr style="border: none; border-top: 1px solid #E2E8F0; margin: 20px 0;" />
+                <p style="font-size: 11px; color: #94A3B8;">Pusat Layanan Disabilitas, Universitas Brawijaya Malang.</p>
+              </div>
+            `,
+          }),
+        });
+        console.log("Resend mail dispatch status:", mailRes.status);
+      } catch (mailErr) {
+        console.log("Resend mail dispatch error:", mailErr);
+      }
+    }
+
+    // Ensure user exists in Supabase Auth system before requesting reset email
+    try {
+      await sb().auth.admin.createUser({
+        email: cleanEmail,
+        password: foundUser.password || "Pustaka2024!",
+        email_confirm: true,
+      });
+    } catch {
+      // User already exists in auth.users
+    }
+
+    // Trigger Supabase Auth built-in email service
+    try {
+      const { error: resetErr } = await sb().auth.resetPasswordForEmail(cleanEmail);
+      if (resetErr) {
+        console.log("Supabase Auth email dispatch note:", resetErr.message);
+      } else {
+        console.log(`Password reset email sent via Supabase Auth to ${cleanEmail}`);
+      }
+    } catch (authErr) {
+      console.log("Supabase Auth email dispatch notice:", authErr);
+    }
 
     return c.json({
       success: true,
@@ -637,7 +709,7 @@ async function processEpub(buffer: Uint8Array): Promise<{ title: string; content
   if (!opfPath) throw new Error("No OPF found in EPUB");
 
   const opfText = new TextDecoder().decode(files[opfPath]);
-  const opfDir  = opfPath.includes("/") ? opfPath.slice(0, opfPath.lastIndexOf("/") + 1) : "";
+  const opfDir = opfPath.includes("/") ? opfPath.slice(0, opfPath.lastIndexOf("/") + 1) : "";
 
   // Parse manifest: id → href
   const manifest: Record<string, string> = {};
@@ -658,13 +730,13 @@ async function processEpub(buffer: Uint8Array): Promise<{ title: string; content
     const href = manifest[refId];
     if (!href) continue;
     const fullPath = opfDir + href;
-    const fileData  = files[fullPath] ?? files[href];
+    const fileData = files[fullPath] ?? files[href];
     if (!fileData) continue;
 
-    const html    = new TextDecoder().decode(fileData);
+    const html = new TextDecoder().decode(fileData);
     const rawTitle = html.match(/<(?:h1|h2|h3|title)[^>]*>([^<]+)<\/(?:h1|h2|h3|title)>/i)?.[1];
-    const chTitle  = rawTitle ? htmlDecode(rawTitle).trim() : `Bagian ${chapters.length + 1}`;
-    const content  = htmlToText(html).trim();
+    const chTitle = rawTitle ? htmlDecode(rawTitle).trim() : `Bagian ${chapters.length + 1}`;
+    const content = htmlToText(html).trim();
 
     if (content.length > 80) {
       chapters.push({ title: chTitle, content });
@@ -679,8 +751,8 @@ async function extractPdfText(buffer: Uint8Array): Promise<string> {
   try {
     // Attempt with pdf-parse (works in Deno with Node compat)
     const { Buffer } = await import("node:buffer");
-    const pdfParse   = await import("npm:pdf-parse/lib/pdf-parse.js");
-    const data       = await pdfParse.default(Buffer.from(buffer));
+    const pdfParse = await import("npm:pdf-parse/lib/pdf-parse.js");
+    const data = await pdfParse.default(Buffer.from(buffer));
     return data.text ?? "";
   } catch (e) {
     console.log("pdf-parse failed, using raw extraction:", String(e).slice(0, 100));
@@ -723,11 +795,11 @@ function splitIntoChapters(text: string, fallbackTitle: string): { title: string
 
   // Fallback: ~1500-word chunks
   const words = text.trim().split(/\s+/);
-  const size  = 1500;
+  const size = 1500;
   const result: { title: string; content: string }[] = [];
   for (let i = 0; i < words.length; i += size) {
     result.push({
-      title  : result.length === 0 ? fallbackTitle : `Bagian ${result.length + 1}`,
+      title: result.length === 0 ? fallbackTitle : `Bagian ${result.length + 1}`,
       content: words.slice(i, i + size).join(" "),
     });
   }
@@ -764,14 +836,14 @@ function categoryColor(cat: string) {
   return CAT_COLOURS[cat] ?? "#0A1172";
 }
 const CAT_COVERS: Record<string, string> = {
-  Hukum:     "https://images.unsplash.com/photo-1709626011485-6fe000ea2dbc?w=400&h=560&fit=crop",
-  Sains:     "https://images.unsplash.com/photo-1518152006812-edab29b069ac?w=400&h=560&fit=crop",
-  Teknik:    "https://images.unsplash.com/photo-1562408590-e32931084e23?w=400&h=560&fit=crop",
-  Ekonomi:   "https://images.unsplash.com/photo-1591696205602-2f950c417cb9?w=400&h=560&fit=crop",
-  Sosial:    "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=400&h=560&fit=crop",
+  Hukum: "https://images.unsplash.com/photo-1709626011485-6fe000ea2dbc?w=400&h=560&fit=crop",
+  Sains: "https://images.unsplash.com/photo-1518152006812-edab29b069ac?w=400&h=560&fit=crop",
+  Teknik: "https://images.unsplash.com/photo-1562408590-e32931084e23?w=400&h=560&fit=crop",
+  Ekonomi: "https://images.unsplash.com/photo-1591696205602-2f950c417cb9?w=400&h=560&fit=crop",
+  Sosial: "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=400&h=560&fit=crop",
   Psikologi: "https://images.unsplash.com/photo-1617791160536-598cf32026fb?w=400&h=560&fit=crop",
   Teknologi: "https://images.unsplash.com/photo-1592659762303-90081d34b277?w=400&h=560&fit=crop",
-  Kedokteran:"https://images.unsplash.com/photo-1638202993928-7267aad84c31?w=400&h=560&fit=crop",
+  Kedokteran: "https://images.unsplash.com/photo-1638202993928-7267aad84c31?w=400&h=560&fit=crop",
   Pertanian: "https://images.unsplash.com/photo-1621394988863-117a9fc6e77f?w=400&h=560&fit=crop",
 };
 function defaultCover(cat: string) {

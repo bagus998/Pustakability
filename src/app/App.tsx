@@ -117,13 +117,28 @@ function AppInner() {
     }
   });
 
-  const [users, setUsers] = useState<AppUser[]>(INITIAL_USERS);
+  const [users, setUsers] = useState<AppUser[]>(() => {
+    try {
+      const saved = localStorage.getItem("pustakability_users");
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return INITIAL_USERS;
+  });
   const [darkMode, setDarkMode] = useState(false);
   const [legalTab, setLegalTab] = useState<LegalTab | null>(null);
 
   const [selectedBookId, setSelectedBookId] = useState<string | null>(() => {
     return getInitialUrlState().bookId;
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("pustakability_users", JSON.stringify(users));
+    } catch {}
+  }, [users]);
 
   useEffect(() => {
     if (user) {
@@ -171,7 +186,12 @@ function AppInner() {
     apiFetchUsers()
       .then((data) => {
         if (data && data.length > 0) {
-          setUsers(data);
+          setUsers((prev) => {
+            // Merge remote users with local registered users
+            const existingEmails = new Set(data.map((u) => u.email.toLowerCase()));
+            const localOnly = prev.filter((u) => !existingEmails.has(u.email.toLowerCase()));
+            return [...data, ...localOnly];
+          });
         }
       })
       .catch((err) => {
@@ -248,24 +268,30 @@ function AppInner() {
     nim: string;
     disability?: string;
   }) => {
+    const newUser: AppUser = {
+      id: String(Date.now()),
+      name: userData.name,
+      email: userData.email.toLowerCase(),
+      password: userData.password,
+      role: userData.role,
+      faculty: userData.faculty,
+      status: "active",
+      joined: new Date().toISOString().split("T")[0],
+    };
+
+    setUsers((prev) => {
+      const filtered = prev.filter((u) => u.email.toLowerCase() !== newUser.email);
+      const updated = [...filtered, newUser];
+      try {
+        localStorage.setItem("pustakability_users", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+
     try {
-      const created = await apiRegisterUser(userData);
-      setUsers((prev) => [...prev, created]);
-      const fresh = await apiFetchUsers();
-      if (fresh?.length) setUsers(fresh);
+      await apiRegisterUser(userData);
     } catch (err) {
-      console.warn("Failed to register in Supabase, using local fallback state:", err);
-      const newUser: AppUser = {
-        id: String(Date.now()),
-        name: userData.name,
-        email: userData.email,
-        password: userData.password,
-        role: userData.role,
-        faculty: userData.faculty,
-        status: "pending",
-        joined: new Date().toISOString().split("T")[0],
-      };
-      setUsers((prev) => [...prev, newUser]);
+      console.warn("Failed to sync registered user to Supabase:", err);
     }
   };
 
