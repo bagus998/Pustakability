@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { X, ChevronLeft, ChevronRight, Menu, Moon, Sun, BookOpen, Lock, Loader2 } from "lucide-react";
+import { X, ChevronLeft, ChevronRight, Menu, Moon, Sun, BookOpen, Lock, Loader2, Bookmark } from "lucide-react";
 import type { Book } from "../data/books";
 import type { UserRole, Page } from "../App";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { apiFetchChapters, type ApiChapter } from "../api/books";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
+import { useToast } from "../contexts/ToastContext";
 
 interface EbookReaderProps {
   book:             Book;
@@ -18,8 +19,10 @@ interface EbookReaderProps {
 
 export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onDarkModeToggle }: EbookReaderProps) {
   const { t } = useLanguage();
+  const { showToast } = useToast();
   const [currentChapter, setCurrentChapter] = useState(0);
   const [sidebarOpen,    setSidebarOpen]    = useState(true);
+  const [isBookmarked, setIsBookmarked] = useState(false);
   const [apiChapters,    setApiChapters]    = useState<ApiChapter[] | null>(null);
   const [chaptersLoading, setChaptersLoading] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -137,29 +140,41 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
               aria-label="Mode preview — login untuk akses penuh"
             >
               <Lock className="w-3.5 h-3.5" aria-hidden="true" />
-              {t(T.ebook.previewMode)}
+              <span>Preview Mode</span>
             </div>
           )}
 
           <button
-            onClick={onDarkModeToggle}
-            className="p-2 rounded-lg transition-colors"
-            style={{ color: mutedText }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = dm ? "#1E2D4F" : "#F3F4F6")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-            aria-label={dm ? t(T.nav.lightMode) : t(T.nav.darkMode)}
-            aria-pressed={dm}
+            onClick={() => {
+              const next = !isBookmarked;
+              setIsBookmarked(next);
+              showToast(next ? "Halaman ditambahkan ke Bookmark" : "Bookmark dihapus");
+            }}
+            className="p-2 rounded-lg active:scale-95 transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B5BDB]"
+            style={{ color: isBookmarked ? "#00D4AC" : mutedText }}
+            title={isBookmarked ? "Hapus Bookmark" : "Simpan Bookmark"}
+            aria-label={isBookmarked ? "Hapus Bookmark" : "Simpan Bookmark"}
           >
-            {dm ? <Sun className="w-5 h-5" aria-hidden="true" /> : <Moon className="w-5 h-5" aria-hidden="true" />}
+            <Bookmark className={`w-5 h-5 ${isBookmarked ? "fill-[#00D4AC]" : ""}`} aria-hidden="true" />
+          </button>
+
+          <button
+            onClick={() => {
+              onDarkModeToggle();
+              showToast(dm ? "Mode Terang aktif" : "Mode Gelap aktif");
+            }}
+            className="p-2 rounded-lg active:scale-95 transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B5BDB]"
+            style={{ color: mutedText }}
+            aria-label={dm ? t(T.nav.lightMode) : t(T.nav.darkMode)}
+          >
+            {dm ? <Sun className="w-5 h-5 text-yellow-400" aria-hidden="true" /> : <Moon className="w-5 h-5" aria-hidden="true" />}
           </button>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-lg transition-colors"
+            className="p-2 rounded-lg active:scale-95 transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B5BDB]"
             style={{ color: mutedText }}
-            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = dm ? "#1E2D4F" : "#F3F4F6")}
-            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
-            aria-label={t(T.ebook.close)}
+            aria-label={t(T.ebook.closeReader)}
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>

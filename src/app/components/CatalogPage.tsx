@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Grid, List } from "lucide-react";
 import { BookCard } from "./BookCatalogSection";
 import { useBooks } from "../contexts/BookContext";
@@ -10,17 +10,27 @@ interface CatalogPageProps {
   darkMode: boolean;
   role: UserRole;
   onOpenBook: (bookId: string) => void;
-  onNavigate: (page: Page) => void;
+  onNavigate: (page: Page, bookId?: string, filter?: { query?: string; format?: string }) => void;
+  initialQuery?: string;
+  initialFormat?: string;
 }
 
-export function CatalogPage({ darkMode: dm, role, onOpenBook, onNavigate }: CatalogPageProps) {
+export function CatalogPage({ darkMode: dm, role, onOpenBook, onNavigate, initialQuery = "", initialFormat = "all" }: CatalogPageProps) {
   const { t } = useLanguage();
   const { books: allBooks } = useBooks();
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState("all");
-  const [selectedFormat, setSelectedFormat] = useState("all");
+  const [selectedFormat, setSelectedFormat] = useState(initialFormat);
   const [selectedSort, setSelectedSort] = useState("relevance");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+
+  useEffect(() => {
+    if (initialQuery !== undefined) setSearchQuery(initialQuery);
+  }, [initialQuery]);
+
+  useEffect(() => {
+    if (initialFormat !== undefined && initialFormat !== "") setSelectedFormat(initialFormat);
+  }, [initialFormat]);
 
   const bg      = dm ? "#0D1117" : "#F5F7FF";
   const card    = dm ? "#161B2E" : "#FFFFFF";
@@ -54,7 +64,6 @@ export function CatalogPage({ darkMode: dm, role, onOpenBook, onNavigate }: Cata
   const sorts = [
     { key: "relevance", label: t(T.catalogPage.sort.relevance) },
     { key: "newest",    label: t(T.catalogPage.sort.newest) },
-    { key: "rating",    label: t(T.catalogPage.sort.rating) },
     { key: "az",        label: t(T.catalogPage.sort.az) },
   ];
 
@@ -145,7 +154,7 @@ export function CatalogPage({ darkMode: dm, role, onOpenBook, onNavigate }: Cata
           ) : (
             <div className="flex flex-col gap-3">
               {filteredBooks.map((book) => (
-                <div key={book.id} className="flex gap-4 p-4 rounded-2xl cursor-pointer transition-all hover:shadow-md"
+                <div key={book.id} className="flex gap-4 p-4 rounded-2xl cursor-pointer active:scale-[0.98] transition-all duration-150 ease-out hover:shadow-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[#3B5BDB]"
                   style={{ backgroundColor: card, border: `1px solid ${border}` }}
                   onClick={() => onOpenBook(book.id)} tabIndex={0} onKeyDown={(e) => e.key === "Enter" && onOpenBook(book.id)} role="button" aria-label={`Buka ${book.title}`}>
                   <div className="w-16 rounded-xl overflow-hidden flex-shrink-0" style={{ height: "88px" }}>
@@ -163,7 +172,6 @@ export function CatalogPage({ darkMode: dm, role, onOpenBook, onNavigate }: Cata
                   </div>
                   <div className="flex flex-col items-end justify-between flex-shrink-0">
                     <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor: `${book.coverColor}18`, color: book.coverColor, fontSize: "0.72rem", fontWeight: 500 }}>{book.category}</span>
-                    <div style={{ fontSize: "0.8rem", color: "#FBBF24", fontWeight: 600 }}>★ {book.rating}</div>
                   </div>
                 </div>
               ))}
@@ -174,7 +182,7 @@ export function CatalogPage({ darkMode: dm, role, onOpenBook, onNavigate }: Cata
             <div style={{ fontSize: "3rem", marginBottom: "1rem" }}>📚</div>
             <p style={{ color: muted, fontSize: "1rem" }}>{t(T.catalogPage.noResults)}</p>
             <button onClick={() => { setSearchQuery(""); setSelectedCategory("all"); setSelectedFormat("all"); }}
-              className="mt-4 px-5 py-2 rounded-xl" style={{ border: `1.5px solid ${border}`, color: text, fontSize: "0.875rem" }}>
+              className="mt-4 px-5 py-2 rounded-xl active:scale-[0.96] transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B5BDB]" style={{ border: `1.5px solid ${border}`, color: text, fontSize: "0.875rem" }}>
               {t(T.catalogPage.resetFilter)}
             </button>
           </div>

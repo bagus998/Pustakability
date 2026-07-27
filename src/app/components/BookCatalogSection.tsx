@@ -1,4 +1,4 @@
-import { ArrowRight, Star, Lock, Eye } from "lucide-react";
+import { ArrowRight, Lock, Eye } from "lucide-react";
 import { type Book } from "../data/books";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import type { UserRole, Page } from "../App";
@@ -35,7 +35,7 @@ export function BookCard({ book, darkMode: dm, role, onOpenBook }: BookCardProps
 
   return (
     <article
-      className="rounded-2xl overflow-hidden transition-all hover:-translate-y-1.5 hover:shadow-xl cursor-pointer group"
+      className="rounded-2xl overflow-hidden active:scale-[0.97] transition-all duration-150 ease-out hover:-translate-y-1.5 hover:shadow-xl cursor-pointer group focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[#3B5BDB]"
       style={{ backgroundColor: card, border: `1px solid ${border}` }}
       onClick={() => onOpenBook(book.id)}
       tabIndex={0}
@@ -70,10 +70,7 @@ export function BookCard({ book, darkMode: dm, role, onOpenBook }: BookCardProps
       {/* Info */}
       <div className="p-3">
         <div className="flex items-center justify-between mb-2.5">
-          <div className="flex items-center gap-1">
-            <Star className="w-3.5 h-3.5 fill-yellow-400 text-yellow-400" aria-hidden="true" />
-            <span style={{ fontSize: "0.78rem", fontWeight: 600, color: text }}>{book.rating}</span>
-          </div>
+          <span style={{ fontSize: "0.75rem", fontWeight: 500, color: muted }}>{book.publisher || "UB Press"}</span>
           <span style={{ fontSize: "0.72rem", color: muted }}>{book.year}</span>
         </div>
 
@@ -86,7 +83,7 @@ export function BookCard({ book, darkMode: dm, role, onOpenBook }: BookCardProps
         </div>
 
         <button
-          className="w-full py-2 rounded-xl transition-colors text-white font-medium flex items-center justify-center gap-1.5"
+          className="w-full py-2 rounded-xl active:scale-[0.96] transition-all duration-150 ease-out text-white font-medium flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B5BDB]"
           style={{ backgroundColor: isGuest ? "#6B7280" : "#0A1172", fontSize: "0.8rem" }}
           onClick={(e) => { e.stopPropagation(); onOpenBook(book.id); }}
         >

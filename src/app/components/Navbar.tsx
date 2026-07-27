@@ -4,7 +4,7 @@ import type { AuthUser, UserRole, Page } from "../App";
 import logoImg from "../../imports/Logo_Pustakability_square-01.png";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
-
+import { useToast } from "../contexts/ToastContext";
 
 interface NavbarProps {
   currentPage: Page;
@@ -27,6 +27,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [langOpen, setLangOpen]       = useState(false);
   const { lang: langCode, setLang: setLangCode, t } = useLanguage();
+  const { showToast } = useToast();
   const lang = languages.find(l => l.code === langCode) ?? languages[0];
 
   const navBg     = dm ? "#0F1623" : "#0A1172";
@@ -89,7 +90,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
               <button
                 key={link.id}
                 onClick={() => onNavigate(link.id)}
-                className="px-4 py-2 rounded-lg transition-colors"
+                className="px-4 py-2 rounded-lg active:scale-[0.95] transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D4AC]"
                 style={{
                   backgroundColor: currentPage === link.id ? "rgba(255,255,255,0.15)" : "transparent",
                   color: "white",
@@ -105,7 +106,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
             {role === "admin" && (
               <button
                 onClick={() => onNavigate("admin")}
-                className="px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 rounded-lg active:scale-[0.95] transition-all duration-150 ease-out flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D4AC]"
                 style={{
                   backgroundColor: currentPage === "admin" ? "rgba(255,255,255,0.15)" : "transparent",
                   color: currentPage === "admin" ? "white" : "rgba(255,255,255,0.7)",
@@ -120,7 +121,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
             {(role === "volunteer" || role === "admin") && (
               <button
                 onClick={() => onNavigate("volunteer")}
-                className="px-4 py-2 rounded-lg transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 rounded-lg active:scale-[0.95] transition-all duration-150 ease-out flex items-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D4AC]"
                 style={{
                   backgroundColor: currentPage === "volunteer" ? "rgba(255,255,255,0.15)" : "transparent",
                   color: currentPage === "volunteer" ? "white" : "rgba(255,255,255,0.7)",

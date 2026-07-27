@@ -2,6 +2,7 @@ import { useState } from "react";
 import { LanguageProvider, useLanguage } from "./i18n/LanguageContext";
 import { t as T } from "./i18n/translations";
 import { BookProvider, useBooks } from "./contexts/BookContext";
+import { ToastProvider } from "./contexts/ToastContext";
 import { Navbar } from "./components/Navbar";
 import { Hero } from "./components/Hero";
 import { StatsSection } from "./components/StatsSection";
@@ -72,10 +73,12 @@ const PATH_TO_PAGE: Record<string, Page> = {
   "/volunteer": "volunteer",
 };
 
-const getInitialUrlState = (): { page: Page; bookId: string | null } => {
+const getInitialUrlState = (): { page: Page; bookId: string | null; filter: { query?: string; format?: string } } => {
   const path = window.location.pathname.toLowerCase();
   const searchParams = new URLSearchParams(window.location.search);
   const bookId = searchParams.get("id");
+  const query = searchParams.get("search") || searchParams.get("query") || undefined;
+  const format = searchParams.get("format") || undefined;
 
   let page: Page = PATH_TO_PAGE[path] || "home";
 
@@ -91,12 +94,17 @@ const getInitialUrlState = (): { page: Page; bookId: string | null } => {
   return {
     page,
     bookId: bookId || savedBook || null,
+    filter: { query, format },
   };
 };
 
 function AppInner() {
   const [page, setPage] = useState<Page>(() => {
     return getInitialUrlState().page;
+  });
+
+  const [catalogFilter, setCatalogFilter] = useState<{ query?: string; format?: string }>(() => {
+    return getInitialUrlState().filter;
   });
 
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -138,9 +146,10 @@ function AppInner() {
   // Sync browser URL paths & history popstate (Back/Forward navigation)
   useEffect(() => {
     const handlePopState = () => {
-      const { page: newPage, bookId: newBookId } = getInitialUrlState();
+      const { page: newPage, bookId: newBookId, filter: newFilter } = getInitialUrlState();
       setPage(newPage);
       if (newBookId) setSelectedBookId(newBookId);
+      setCatalogFilter(newFilter);
     };
 
     // Ensure initial URL path is set nicely on first mount
@@ -172,14 +181,28 @@ function AppInner() {
   const { t } = useLanguage();
   const { books } = useBooks();
 
-  const navigateTo = (p: Page, bookId?: string) => {
+  const navigateTo = (p: Page, bookId?: string, filter?: { query?: string; format?: string }) => {
     setPage(p);
     const targetBookId = bookId !== undefined ? bookId : selectedBookId;
     if (bookId !== undefined) setSelectedBookId(bookId);
 
+    if (filter) {
+      setCatalogFilter(filter);
+    } else if (p !== "catalog") {
+      setCatalogFilter({});
+    }
+
     let targetPath = PAGE_TO_PATH[p] || "/home";
     if (p === "ebook" && targetBookId) {
       targetPath = `/reader?id=${targetBookId}`;
+    } else if (p === "catalog") {
+      const queryToUse = filter?.query ?? catalogFilter.query;
+      const formatToUse = filter?.format ?? catalogFilter.format;
+      const params = new URLSearchParams();
+      if (queryToUse) params.set("search", queryToUse);
+      if (formatToUse && formatToUse !== "all") params.set("format", formatToUse);
+      const queryString = params.toString();
+      targetPath = `/collections${queryString ? `?${queryString}` : ""}`;
     }
 
     if (window.location.pathname + window.location.search !== targetPath) {
@@ -355,7 +378,14 @@ function AppInner() {
 
         {/* ── Catalog Page ── */}
         {page === "catalog" && (
-          <CatalogPage darkMode={dm} role={role} onOpenBook={openBook} onNavigate={navigateTo} />
+          <CatalogPage
+            darkMode={dm}
+            role={role}
+            onOpenBook={openBook}
+            onNavigate={navigateTo}
+            initialQuery={catalogFilter.query}
+            initialFormat={catalogFilter.format}
+          />
         )}
 
         {/* ── Login Page ── */}
@@ -428,10 +458,12 @@ function AppInner() {
 
 export default function App() {
   return (
-    <LanguageProvider>
-      <BookProvider>
-        <AppInner />
-      </BookProvider>
-    </LanguageProvider>
+    <ToastProvider>
+      <LanguageProvider>
+        <BookProvider>
+          <AppInner />
+        </BookProvider>
+      </LanguageProvider>
+    </ToastProvider>
   );
 }

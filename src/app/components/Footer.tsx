@@ -1,7 +1,7 @@
 import { Mail, Phone, MapPin, ExternalLink } from "lucide-react";
 import type { Page } from "../App";
 import logoImg from "../../imports/Logo_Pustakability_square-01.png";
-import logoUB from "../../imports/Logo-UB.png"
+import logoSLDPI from "../../imports/Logo-Baru-SLDPI-Putih.webp";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
 
@@ -28,8 +28,8 @@ export function Footer({ darkMode: dm, onNavigate }: FooterProps) {
               </div>
             </div>
             <p className="text-blue-200/60 leading-relaxed mb-5" style={{ fontSize: "0.85rem" }}>{t(T.footer.description)}</p>
-            <div className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/5 border border-white/10">
-              <img src={logoUB} alt="Universitas Brawijaya" className="h-8 w-auto object-contain" />
+            <div className="inline-flex items-center p-3 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors">
+              <img src={logoSLDPI} alt="Pusat Layanan Disabilitas & Pendidikan Inklusi UB" className="h-10 sm:h-12 w-auto max-w-full object-contain" />
             </div>
           </div>
 

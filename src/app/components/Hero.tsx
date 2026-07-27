@@ -7,7 +7,7 @@ import { t as T } from "../i18n/translations";
 
 interface HeroProps {
   darkMode: boolean;
-  onNavigate: (page: Page) => void;
+  onNavigate: (page: Page, bookId?: string, filter?: { query?: string; format?: string }) => void;
 }
 
 export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
@@ -15,10 +15,11 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
   const { t } = useLanguage();
 
   const formatCards = [
-    { icon: Volume2, label: t(T.hero.formats.audio),   color: "#00D4AC", desc: t(T.hero.formatDesc.audio) },
-    { icon: FileText, label: t(T.hero.formats.pdf),    color: "#3B5BDB", desc: t(T.hero.formatDesc.pdf) },
-    { icon: BookOpen, label: t(T.hero.formats.daisy),  color: "#0D7070", desc: t(T.hero.formatDesc.daisy) },
+    { key: "Audio", icon: Volume2, label: t(T.hero.formats.audio),   color: "#00D4AC", desc: t(T.hero.formatDesc.audio) },
+    { key: "PDF", icon: FileText, label: t(T.hero.formats.pdf),    color: "#3B5BDB", desc: t(T.hero.formatDesc.pdf) },
+    { key: "DAISY", icon: BookOpen, label: t(T.hero.formats.daisy),  color: "#0D7070", desc: t(T.hero.formatDesc.daisy) },
     {
+      key: "Braille",
       icon: () => (
         <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" aria-hidden="true">
           <circle cx="6" cy="12" r="1.5" fill="currentColor" />
@@ -34,6 +35,11 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
       desc: t(T.hero.formatDesc.braille),
     },
   ];
+
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    onNavigate("catalog", undefined, { query: searchQuery });
+  };
 
   return (
     <section
@@ -62,14 +68,6 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 grid lg:grid-cols-2 gap-12 items-center">
         <div>
-          <div
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full mb-6"
-            style={{ backgroundColor: "rgba(0,212,172,0.12)", border: "1px solid rgba(0,212,172,0.3)", color: "#00D4AC", fontSize: "0.8rem" }}
-          >
-            <div className="w-2 h-2 rounded-full bg-[#00D4AC] animate-pulse" />
-            {t(T.hero.badge)}
-          </div>
-
           <h1 id="hero-heading" className="text-white mb-5" style={{ fontSize: "clamp(1.8rem, 4vw, 2.75rem)", fontWeight: 700, lineHeight: 1.2 }}>
             {t(T.hero.heading1)}{" "}
             <span style={{ background: "linear-gradient(90deg, #00D4AC, #87C4E8)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
@@ -82,7 +80,7 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
             {t(T.hero.body).replace("{count}", "10.000")}
           </p>
 
-          <div className="relative mb-6">
+          <form onSubmit={handleSearch} className="relative mb-6">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-blue-300" aria-hidden="true" />
             <input
               type="search"
@@ -96,13 +94,13 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
               onBlur={(e) => (e.target.style.borderColor = "rgba(255,255,255,0.18)")}
             />
             <button
-              onClick={() => onNavigate("catalog")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg font-medium"
+              type="submit"
+              className="absolute right-2 top-1/2 -translate-y-1/2 px-5 py-2 rounded-lg font-medium active:scale-[0.96] transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0A1172]"
               style={{ backgroundColor: "#00D4AC", color: "#0A1172", fontSize: "0.875rem" }}
             >
               {t(T.hero.searchBtn)}
             </button>
-          </div>
+          </form>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
             {formatCards.map((f, i) => {
@@ -110,8 +108,8 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
               return (
                 <button
                   key={i}
-                  onClick={() => onNavigate("catalog")}
-                  className="flex flex-col items-center gap-2 p-3 rounded-xl transition-all"
+                  onClick={() => onNavigate("catalog", undefined, { format: f.key })}
+                  className="flex flex-col items-center gap-2 p-3 rounded-xl active:scale-[0.96] transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00D4AC]"
                   style={{ backgroundColor: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)" }}
                   aria-label={`Format ${f.label}`}
                   onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.12)")}
@@ -130,7 +128,7 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
           <div className="flex flex-wrap gap-3">
             <button
               onClick={() => onNavigate("catalog")}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white transition-all hover:opacity-90"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white active:scale-[0.96] transition-all duration-150 ease-out hover:opacity-90 focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[#00D4AC]"
               style={{ background: "linear-gradient(135deg, #00D4AC, #3B5BDB)" }}
             >
               {t(T.hero.ctaBrowse)}
@@ -138,7 +136,7 @@ export function Hero({ darkMode: dm, onNavigate }: HeroProps) {
             </button>
             <button
               onClick={() => onNavigate("register")}
-              className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-white transition-all"
+              className="flex items-center gap-2 px-6 py-3 rounded-xl font-medium text-white active:scale-[0.96] transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[#00D4AC]"
               style={{ border: "1px solid rgba(255,255,255,0.3)" }}
               onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)")}
               onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
