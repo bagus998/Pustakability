@@ -501,6 +501,81 @@ app.post("/make-server-d4405fa6/users", async (c) => {
   }
 });
 
+// POST /auth/forgot-password — Request reset code via email
+app.post("/make-server-d4405fa6/auth/forgot-password", async (c) => {
+  try {
+    const { email } = await c.req.json();
+    const cleanEmail = sanitizeString(email).toLowerCase();
+
+    if (!cleanEmail) {
+      return c.json({ error: "Missing required field: email" }, 400);
+    }
+
+    const users = await ensureSeedUsers();
+    const foundUser = users.find((u: any) => u.email?.toLowerCase() === cleanEmail);
+
+    if (!foundUser) {
+      return c.json({ error: "Email UB tidak terdaftar dalam sistem Pustakability" }, 404);
+    }
+
+    // Generate 6-digit confirmation code
+    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const expiresAt = Date.now() + 15 * 60 * 1000; // 15 mins
+
+    await kv.set(`${P}reset:${cleanEmail}`, { code, expiresAt, userId: foundUser.id });
+    console.log(`Password reset code for ${cleanEmail}: ${code}`);
+
+    return c.json({
+      success: true,
+      message: `Kode konfirmasi 6-digit telah dikirimkan ke email ${cleanEmail}`,
+      code,
+    });
+  } catch (e) {
+    console.log("POST /auth/forgot-password error:", e);
+    return c.json({ error: String(e) }, 500);
+  }
+});
+
+// POST /auth/reset-password — Confirm code and update password
+app.post("/make-server-d4405fa6/auth/reset-password", async (c) => {
+  try {
+    const { email, code, newPassword } = await c.req.json();
+    const cleanEmail = sanitizeString(email).toLowerCase();
+    const cleanCode = sanitizeString(code);
+
+    if (!cleanEmail || !cleanCode || !newPassword) {
+      return c.json({ error: "Missing required fields" }, 400);
+    }
+
+    const resetRecord = await kv.get(`${P}reset:${cleanEmail}`);
+    if (!resetRecord || resetRecord.code !== cleanCode || Date.now() > resetRecord.expiresAt) {
+      return c.json({ error: "Kode konfirmasi tidak valid atau telah kadaluarsa" }, 400);
+    }
+
+    // Hash new password using Web Crypto SHA-256
+    const passwordHash = await hashPassword(newPassword);
+
+    const users = await ensureSeedUsers();
+    const foundUser = users.find((u: any) => u.email?.toLowerCase() === cleanEmail);
+
+    if (foundUser) {
+      foundUser.passwordHash = passwordHash;
+      foundUser.password = newPassword;
+      foundUser.updatedAt = new Date().toISOString();
+      await kv.set(`${P}user:${foundUser.id}`, foundUser);
+    }
+
+    // Delete reset code record & clear failed attempts
+    await kv.del(`${P}reset:${cleanEmail}`);
+    clearFailedAttempts(`login:${cleanEmail}`);
+
+    return c.json({ success: true, message: "Kata sandi berhasil diperbarui" });
+  } catch (e) {
+    console.log("POST /auth/reset-password error:", e);
+    return c.json({ error: String(e) }, 500);
+  }
+});
+
 // PUT /users/:id
 app.put("/make-server-d4405fa6/users/:id", async (c) => {
   try {

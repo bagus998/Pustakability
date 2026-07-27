@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Eye, EyeOff, BookOpen, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, BookOpen, ArrowLeft, KeyRound } from "lucide-react";
 import type { Page } from "../App";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
+import { ForgotPasswordModal } from "./ForgotPasswordModal";
 
 interface LoginPageProps {
   darkMode: boolean;
@@ -15,6 +16,7 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -151,6 +153,17 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
                   {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
+              <div className="flex justify-end mt-1.5">
+                <button
+                  type="button"
+                  onClick={() => setShowForgotModal(true)}
+                  className="text-xs hover:underline flex items-center gap-1 font-medium transition-colors"
+                  style={{ color: "#3B5BDB" }}
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  Lupa Password?
+                </button>
+              </div>
             </div>
 
             {/* Error */}
@@ -168,7 +181,7 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3.5 rounded-xl font-semibold text-white transition-all"
+              className="w-full py-3.5 rounded-xl font-semibold text-white transition-all active:scale-[0.98]"
               style={{
                 background: loading ? "#94A3B8" : "linear-gradient(135deg, #0A1172, #3B5BDB)",
                 fontSize: "1rem",
@@ -203,6 +216,15 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
             {t(T.login.guestLink)}
           </button>
         </p>
+
+        {/* Forgot Password Modal */}
+        {showForgotModal && (
+          <ForgotPasswordModal
+            darkMode={dm}
+            onClose={() => setShowForgotModal(false)}
+            onSuccessLogin={(resetEmail) => setEmail(resetEmail)}
+          />
+        )}
       </div>
     </div>
   );

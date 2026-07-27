@@ -77,3 +77,35 @@ export async function apiUpdateUser(
 export async function apiDeleteUser(id: string): Promise<void> {
   await request(`/users/${id}`, { method: "DELETE" });
 }
+
+export async function apiForgotPassword(
+  email: string
+): Promise<{ success: boolean; code?: string; error?: string }> {
+  try {
+    const data = await request<{ success: boolean; code?: string; message?: string }>("/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+    return { success: true, code: data.code };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to request password reset" };
+  }
+}
+
+export async function apiResetPassword(
+  email: string,
+  code: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  try {
+    await request<{ success: boolean }>("/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, code, newPassword }),
+    });
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to reset password" };
+  }
+}
