@@ -81,24 +81,24 @@ export const t = {
 
   // ── Features ─────────────────────────────────────────────
   features: {
-    sectionLabel:  { id: "Fitur Aksesibilitas",             en: "Accessibility Features" },
-    sectionTitle:  { id: "Dirancang untuk Semua Cara Membaca", en: "Designed for Every Way of Reading" },
+    sectionLabel:  { id: "Standar Aksesibilitas",             en: "Accessibility Standards" },
+    sectionTitle:  { id: "Memenuhi Standar WCAG 2.1 Level AA", en: "Meeting WCAG 2.1 Level AA Standards" },
     sectionBody:   {
-      id: "Pustakability menyediakan beragam fitur agar setiap mahasiswa UB dapat mengakses informasi dengan cara yang paling nyaman bagi mereka.",
-      en: "Pustakability provides diverse features so every UB student can access information in the way most comfortable for them.",
+      id: "Pustakability dibangun dengan prinsip aksesibilitas native agar dapat diakses secara maksimal oleh mahasiswa penyandang disabilitas menggunakan perangkat pembaca layar dan teknologi asistif.",
+      en: "Pustakability is built with native accessibility principles for seamless access by students with disabilities using screen readers and assistive technology.",
     },
-    wcagLabel: { id: "Pernyataan Aksesibilitas", en: "Accessibility Statement" },
+    wcagLabel: { id: "Komitmen Aksesibilitas WCAG 2.1 AA", en: "WCAG 2.1 AA Accessibility Commitment" },
     wcagBody: {
-      id: "Pustakability berkomitmen memenuhi standar WCAG 2.1 Level AA. Jika Anda menemukan hambatan aksesibilitas, hubungi tim PLD UB di",
-      en: "Pustakability is committed to meeting WCAG 2.1 Level AA standards. If you encounter accessibility barriers, contact the PLD UB team at",
+      id: "Pustakability berkomitmen penuh memenuhi standar WCAG 2.1 Level AA. Jika Anda menemukan hambatan aksesibilitas, hubungi tim PLD UB di",
+      en: "Pustakability is fully committed to meeting WCAG 2.1 Level AA standards. If you encounter accessibility barriers, contact the PLD UB team at",
     },
     items: {
-      audio:   { title: { id: "Audio & Text-to-Speech", en: "Audio & Text-to-Speech" }, desc: { id: "Dengarkan buku dengan kecepatan dan suara yang dapat disesuaikan. Mendukung bahasa Indonesia dan Inggris.", en: "Listen to books at adjustable speed and voice. Supports Indonesian and English." } },
-      braille: { title: { id: "Braille Digital", en: "Digital Braille" }, desc: { id: "Konten tersedia dalam format BRF yang kompatibel dengan display braille dan embosser.", en: "Content available in BRF format compatible with braille displays and embossers." } },
-      daisy:   { title: { id: "Buku DAISY", en: "DAISY Books" }, desc: { id: "Format Digital Accessible Information System dengan navigasi terstruktur per bab, halaman, dan paragraf.", en: "Digital Accessible Information System format with structured navigation by chapter, page, and paragraph." } },
-      font:    { title: { id: "Font Ramah Disleksia", en: "Dyslexia-Friendly Font" }, desc: { id: "Pilih font OpenDyslexic, ukuran huruf besar, dan spasi baris yang lebar untuk kemudahan membaca.", en: "Choose OpenDyslexic font, large text size, and wide line spacing for reading comfort." } },
-      night:   { title: { id: "Mode Baca Malam", en: "Night Reading Mode" }, desc: { id: "Tampilan gelap yang nyaman dan berbagai tema warna untuk pengguna dengan low vision atau sensitivitas cahaya.", en: "Comfortable dark display and various color themes for users with low vision or light sensitivity." } },
-      reader:  { title: { id: "Screen Reader Ready", en: "Screen Reader Ready" }, desc: { id: "Sepenuhnya kompatibel dengan NVDA, JAWS, dan VoiceOver. Setiap elemen dilengkapi label ARIA yang lengkap.", en: "Fully compatible with NVDA, JAWS, and VoiceOver. Every element has complete ARIA labels." } },
+      reader:     { title: { id: "Kompatibel Pembaca Layar", en: "Screen Reader Native" }, desc: { id: "Didesain dengan tag HTML5 semantik dan struktur ARIA lengkap untuk NVDA, JAWS, VoiceOver, dan TalkBack.", en: "Built with semantic HTML5 tags and complete ARIA landmarks for NVDA, JAWS, VoiceOver, and TalkBack." } },
+      keyboard:   { title: { id: "Navigasi Penuh Keyboard", en: "Full Keyboard Navigation" }, desc: { id: "Seluruh menu, tombol, dan pembaca e-book dapat dioperasikan 100% via keyboard dengan indikator fokus kontras tinggi.", en: "Every menu, button, and e-book reader control is 100% operable via keyboard with high-contrast focus rings." } },
+      contrast:   { title: { id: "Kontras Warna 4.5:1 & Mode Gelap", en: "4.5:1 Color Contrast & Dark Mode" }, desc: { id: "Memenuhi rasio kontras minimal 4.5:1 WCAG 2.1 AA dengan Mode Gelap untuk kenyamanan pengguna low vision.", en: "Meets WCAG 2.1 AA minimum 4.5:1 contrast ratio with Dark Mode for low-vision comfort." } },
+      responsive: { title: { id: "Responsif & Zoom Teks 200%", en: "200% Responsive Text Zoom" }, desc: { id: "Tampilan beradaptasi hingga pembesaran teks 200% tanpa mengganggu tata letak atau memotong konten.", en: "Layout adapts up to 200% text zoom without breaking grid layout or clipping content." } },
+      formats:    { title: { id: "Format Digital Aksesibel", en: "Accessible Digital Formats" }, desc: { id: "Koleksi buku tersedia dalam format teks digital, DAISY 3.0, PDF terstruktur, dan Braille Digital (BRF).", en: "Book collections available in digital text, DAISY 3.0, structured PDF, and Digital Braille (BRF)." } },
+      pld:        { title: { id: "Layanan Transkrip PLD UB", en: "PLD UB Transcription Support" }, desc: { id: "Terintegrasi dengan Pusat Layanan Disabilitas UB untuk bantuan konversi buku dan pemenuhan format khusus.", en: "Integrated with UB Disability Services Center for book conversion assistance and custom formats." } },
     },
   },
 

@@ -1,4 +1,4 @@
-import { Volume2, BookOpen, Eye, Type, Monitor } from "lucide-react";
+import { Monitor, Keyboard, Eye, Maximize2, BookOpen, ShieldCheck } from "lucide-react";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
 
@@ -16,13 +16,12 @@ export function FeaturesSection({ darkMode: dm }: FeaturesSectionProps) {
   const lc     = dm ? "rgba(147,197,253,0.8)" : "#0A1172";
 
   const features = [
-    { icon: Volume2,  color: "#00D4AC", badge: "Populer",     item: T.features.items.audio },
-    { icon: () => <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6"><circle cx="6" cy="12" r="2" fill="currentColor"/><circle cx="10" cy="8" r="2" fill="currentColor"/><circle cx="10" cy="12" r="2" fill="currentColor"/><circle cx="14" cy="10" r="2" fill="currentColor"/><circle cx="14" cy="14" r="2" fill="currentColor"/><circle cx="18" cy="12" r="2" fill="currentColor"/></svg>,
-      color: "#87C4E8", badge: null,        item: T.features.items.braille },
-    { icon: BookOpen, color: "#0D7070", badge: null,          item: T.features.items.daisy },
-    { icon: Type,     color: "#3B5BDB", badge: null,          item: T.features.items.font },
-    { icon: Eye,      color: "#F59E0B", badge: null,          item: T.features.items.night },
-    { icon: Monitor,  color: "#E85D04", badge: "WCAG 2.1 AA", item: T.features.items.reader },
+    { icon: Monitor,     color: "#00D4AC", badge: "WCAG 2.1 AA", item: T.features.items.reader },
+    { icon: Keyboard,    color: "#3B5BDB", badge: "Aksesibel",   item: T.features.items.keyboard },
+    { icon: Eye,         color: "#F59E0B", badge: "Kontras 4.5:1", item: T.features.items.contrast },
+    { icon: Maximize2,   color: "#87C4E8", badge: "Reflow 200%", item: T.features.items.responsive },
+    { icon: BookOpen,    color: "#0D7070", badge: "Standardized", item: T.features.items.formats },
+    { icon: ShieldCheck, color: "#BE185D", badge: "PLD UB Certified", item: T.features.items.pld },
   ];
 
   return (
