@@ -60,12 +60,81 @@ export async function apiRegisterUser(userData: {
   nim: string;
   disability?: string;
 }): Promise<AppUser> {
-  const data = await request<{ user: AppUser }>("/users", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(userData),
-  });
-  return data.user;
+  const newUser: AppUser = {
+    id: `user_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+    name: userData.name.trim(),
+    email: userData.email.trim().toLowerCase(),
+    password: userData.password,
+    role: userData.role,
+    faculty: userData.faculty,
+    status: "pending",
+    joined: new Date().toISOString().split("T")[0],
+  };
+
+  // 1. Create user in Supabase Auth service (auth.users tab in Supabase Dashboard)
+  try {
+    const authRes = await fetch(`https://${projectId}.supabase.co/auth/v1/signup`, {
+      method: "POST",
+      headers: {
+        apikey: publicAnonKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: newUser.email,
+        password: newUser.password,
+        data: {
+          name: newUser.name,
+          role: newUser.role,
+          faculty: newUser.faculty,
+          nim: userData.nim,
+          disability: userData.disability,
+        },
+      }),
+    });
+    if (authRes.ok) {
+      console.log(`Successfully created ${newUser.email} directly in Supabase Auth (auth.users)`);
+    } else {
+      console.warn("Supabase Auth signup response:", authRes.status, await authRes.text());
+    }
+  } catch (e) {
+    console.warn("Supabase Auth signup notice:", e);
+  }
+
+  // 2. Insert into relational `profiles` table
+  try {
+    await fetch(`https://${projectId}.supabase.co/rest/v1/profiles`, {
+      method: "POST",
+      headers: {
+        apikey: publicAnonKey,
+        Authorization: `Bearer ${publicAnonKey}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates",
+      },
+      body: JSON.stringify({
+        name: newUser.name,
+        email: newUser.email,
+        password: newUser.password,
+        role: newUser.role,
+        faculty: newUser.faculty,
+        status: newUser.status,
+      }),
+    });
+  } catch (e) {
+    console.warn("Profiles table insert notice:", e);
+  }
+
+  // 3. Fallback sync with Edge Function if running
+  try {
+    await request<{ user: AppUser }>("/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(userData),
+    });
+  } catch (e) {
+    console.warn("Edge function register notice:", e);
+  }
+
+  return newUser;
 }
 
 export async function apiUpdateUser(

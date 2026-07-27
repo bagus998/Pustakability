@@ -276,7 +276,7 @@ function AppInner() {
       password: userData.password,
       role: userData.role,
       faculty: userData.faculty,
-      status: "active",
+      status: "pending",
       joined: new Date().toISOString().split("T")[0],
     };
 
