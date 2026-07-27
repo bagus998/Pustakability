@@ -20,6 +20,7 @@ import { VolunteerDashboard } from "./components/VolunteerDashboard";
 import { LegalModal, type LegalTab } from "./components/LegalModal";
 
 import type { AppUser } from "./components/EditUserModal";
+import { allBooks } from "./data/books";
 import {
   apiFetchUsers,
   apiLoginUser,
@@ -333,7 +334,7 @@ function AppInner() {
     window.scrollTo({ top: 0 });
   };
 
-  const selectedBook = books.find((b) => b.id === selectedBookId) ?? books[0];
+  const selectedBook = books.find((b) => b.id === selectedBookId) ?? books[0] ?? allBooks[0];
 
   const dm = darkMode;
 

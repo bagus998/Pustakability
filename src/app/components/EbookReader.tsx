@@ -31,13 +31,14 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
   const canReadFull = !isGuest;
 
   // Determine chapters to display
-  const chapters: ApiChapter[] = apiChapters ?? book.chapters ?? [];
+  const chapters: ApiChapter[] = apiChapters ?? book?.chapters ?? [];
   const previewCount = isGuest ? 1 : chapters.length;
   const isLocked = isGuest && currentChapter >= previewCount;
   const chapter  = chapters[Math.min(currentChapter, chapters.length - 1)] ?? { title: "", content: "" };
 
   // Fetch chapters from API if book has an API-assigned ID (UUID format)
   useEffect(() => {
+    if (!book?.id) return;
     const isApiBook = /^[0-9a-f]{8}-[0-9a-f]{4}-/.test(book.id);
     if (!isApiBook) return; // local demo book, use embedded chapters
 
@@ -174,7 +175,7 @@ export function EbookReader({ book, darkMode: dm, role, onClose, onNavigate, onD
             onClick={onClose}
             className="p-2 rounded-lg active:scale-95 transition-all duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#3B5BDB]"
             style={{ color: mutedText }}
-            aria-label={t(T.ebook.closeReader)}
+            aria-label={t(T.ebook.close)}
           >
             <X className="w-5 h-5" aria-hidden="true" />
           </button>

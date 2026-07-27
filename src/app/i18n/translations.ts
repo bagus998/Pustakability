@@ -479,6 +479,7 @@ export const t = {
 } as const;
 
 /** Pick the right string for the current language */
-export function tr<T extends { id: string; en: string }>(entry: T, lang: Lang): string {
-  return entry[lang];
+export function tr<T extends { id: string; en: string }>(entry: T | undefined | null, lang: Lang): string {
+  if (!entry) return "";
+  return entry[lang] ?? entry.id ?? "";
 }

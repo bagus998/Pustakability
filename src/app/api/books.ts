@@ -1,4 +1,4 @@
-import { projectId, publicAnonKey } from "/utils/supabase/info";
+import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 import type { Book } from "../data/books";
 
 const BASE = `https://${projectId}.supabase.co/functions/v1/make-server-d4405fa6`;
@@ -19,13 +19,23 @@ async function request<T>(
 
 // ── Books ───────────────────────────────────────────────────────────
 export async function apiFetchBooks(): Promise<Book[]> {
-  const data = await request<{ books: Book[] }>("/books");
-  return data.books ?? [];
+  try {
+    const data = await request<{ books: Book[] }>("/books");
+    return data.books ?? [];
+  } catch (err) {
+    console.warn("API fetch books unavailable, using local fallback:", err);
+    return [];
+  }
 }
 
 export async function apiFetchPendingBooks(): Promise<Book[]> {
-  const data = await request<{ books: Book[] }>("/books/pending");
-  return data.books ?? [];
+  try {
+    const data = await request<{ books: Book[] }>("/books/pending");
+    return data.books ?? [];
+  } catch (err) {
+    console.warn("API fetch pending books unavailable:", err);
+    return [];
+  }
 }
 
 export async function apiFetchBook(id: string): Promise<Book | null> {

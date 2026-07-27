@@ -1,4 +1,4 @@
-import { projectId, publicAnonKey } from "/utils/supabase/info";
+import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 import type { AppUser } from "../components/EditUserModal";
 
 const BASE = `https://${projectId}.supabase.co/functions/v1/make-server-d4405fa6`;
