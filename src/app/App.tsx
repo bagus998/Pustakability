@@ -47,11 +47,56 @@ const INITIAL_USERS: AppUser[] = [
   { id: "6", name: "Dewi Lestari", email: "dewi@student.ub.ac.id", password: "Vol123", role: "volunteer", faculty: "Ilmu Budaya", status: "active", joined: "2024-03-25" },
 ];
 
-function AppInner() {
-  const [page, setPage] = useState<Page>(() => {
+const PAGE_TO_PATH: Record<Page, string> = {
+  home: "/home",
+  catalog: "/collections",
+  login: "/login",
+  register: "/register",
+  ebook: "/reader",
+  admin: "/dashboard/admin",
+  volunteer: "/dashboard/volunteer",
+};
+
+const PATH_TO_PAGE: Record<string, Page> = {
+  "/": "home",
+  "/home": "home",
+  "/collections": "catalog",
+  "/catalog": "catalog",
+  "/login": "login",
+  "/register": "register",
+  "/reader": "ebook",
+  "/ebook": "ebook",
+  "/dashboard/admin": "admin",
+  "/admin": "admin",
+  "/dashboard/volunteer": "volunteer",
+  "/volunteer": "volunteer",
+};
+
+const getInitialUrlState = (): { page: Page; bookId: string | null } => {
+  const path = window.location.pathname.toLowerCase();
+  const searchParams = new URLSearchParams(window.location.search);
+  const bookId = searchParams.get("id");
+
+  let page: Page = PATH_TO_PAGE[path] || "home";
+
+  if (path === "/" || path === "") {
     const saved = localStorage.getItem("pustakability_page");
     const validPages: Page[] = ["home", "catalog", "login", "register", "ebook", "admin", "volunteer"];
-    return saved && validPages.includes(saved as Page) ? (saved as Page) : "home";
+    if (saved && validPages.includes(saved as Page)) {
+      page = saved as Page;
+    }
+  }
+
+  const savedBook = localStorage.getItem("pustakability_book");
+  return {
+    page,
+    bookId: bookId || savedBook || null,
+  };
+};
+
+function AppInner() {
+  const [page, setPage] = useState<Page>(() => {
+    return getInitialUrlState().page;
   });
 
   const [user, setUser] = useState<AuthUser | null>(() => {
@@ -67,7 +112,7 @@ function AppInner() {
   const [darkMode, setDarkMode] = useState(false);
 
   const [selectedBookId, setSelectedBookId] = useState<string | null>(() => {
-    return localStorage.getItem("pustakability_book");
+    return getInitialUrlState().bookId;
   });
 
   useEffect(() => {
@@ -90,6 +135,27 @@ function AppInner() {
     }
   }, [selectedBookId]);
 
+  // Sync browser URL paths & history popstate (Back/Forward navigation)
+  useEffect(() => {
+    const handlePopState = () => {
+      const { page: newPage, bookId: newBookId } = getInitialUrlState();
+      setPage(newPage);
+      if (newBookId) setSelectedBookId(newBookId);
+    };
+
+    // Ensure initial URL path is set nicely on first mount
+    let initialPath = PAGE_TO_PATH[page] || "/home";
+    if (page === "ebook" && selectedBookId) {
+      initialPath = `/reader?id=${selectedBookId}`;
+    }
+    if (window.location.pathname === "/" && initialPath !== "/home") {
+      window.history.replaceState({}, "", initialPath);
+    }
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
   useEffect(() => {
     apiFetchUsers()
       .then((data) => {
@@ -108,7 +174,17 @@ function AppInner() {
 
   const navigateTo = (p: Page, bookId?: string) => {
     setPage(p);
+    const targetBookId = bookId !== undefined ? bookId : selectedBookId;
     if (bookId !== undefined) setSelectedBookId(bookId);
+
+    let targetPath = PAGE_TO_PATH[p] || "/home";
+    if (p === "ebook" && targetBookId) {
+      targetPath = `/reader?id=${targetBookId}`;
+    }
+
+    if (window.location.pathname + window.location.search !== targetPath) {
+      window.history.pushState({}, "", targetPath);
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
