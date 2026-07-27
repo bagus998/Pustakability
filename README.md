@@ -11,7 +11,6 @@ Pustakability is an **Accessible Digital Library** frontend application designed
   - **Accessible PDF**: Formatted for standard screen readers.
   - **DAISY Books**: Digital Accessible Information System formats for precise audio navigation.
   - **Digital Braille (BRF)**: Downloadable formats ready for Braille displays.
-  - **OpenDyslexic Font Support**: Dyslexia-friendly reading mode built-in.
 - **🌓 Dark Mode**: Built-in toggle to switch between light and dark themes for eye comfort.
 - **👥 Role-Based Access**: Specialized views and dashboards for **Users (Students)**, **Volunteers**, and **Admins**.
 
