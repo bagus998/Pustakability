@@ -353,7 +353,7 @@ function AppInner() {
         className="sr-only focus:not-sr-only focus:absolute focus:top-20 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:bg-[#0A1172] focus:text-white"
         style={{ fontSize: "0.875rem" }}
       >
-        Lewati ke konten utama
+        {t(T.nav.skipToMain)}
       </a>
 
       {/* Navbar — hidden only inside full-screen ebook reader */}

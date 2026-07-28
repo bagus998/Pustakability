@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { X, Mail, KeyRound, CheckCircle2, AlertCircle, ArrowLeft, ShieldCheck, Wand2 } from "lucide-react";
+import { X, Mail, KeyRound, CheckCircle2, AlertCircle, ArrowLeft, ShieldCheck } from "lucide-react";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
 import { apiForgotPassword, apiResetPassword } from "../api/users";
@@ -9,20 +9,22 @@ interface ForgotPasswordModalProps {
   darkMode: boolean;
   onClose: () => void;
   onSuccessLogin?: (email: string) => void;
+  initialStep?: 1 | 2;
 }
 
-export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: ForgotPasswordModalProps) {
+export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin, initialStep = 1 }: ForgotPasswordModalProps) {
   const { t } = useLanguage();
   const { showToast } = useToast();
 
-  const [step, setStep] = useState<1 | 2>(1);
+  const [step, setStep] = useState<1 | 2>(initialStep);
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [simulatedCode, setSimulatedCode] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  const isFromEmailLink = typeof window !== "undefined" && (window.location.href.includes("type=recovery") || window.location.href.includes("access_token"));
 
   const modalBg = dm ? "#161B2E" : "#FFFFFF";
   const border  = dm ? "#1E2D4F" : "#E5E7EB";
@@ -31,12 +33,12 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
   const inputBg = dm ? "#0D1117" : "#F9FAFB";
   const headerBg = dm ? "#0D1117" : "#F8FAFC";
 
-  // Step 1: Send Confirmation Code to Email
-  const handleSendCode = async (e: React.FormEvent) => {
+  // Step 1: Send Magic Link to Email
+  const handleSendLink = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!email.includes("@")) {
-      setError("Masukkan alamat email UB yang valid.");
+      setError(t(T.forgot.invalidEmailErr));
       return;
     }
 
@@ -45,45 +47,37 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
     setLoading(false);
 
     if (res.success) {
-      if (res.code) {
-        setSimulatedCode(res.code);
-        setCode(""); // Leave empty so user types the code manually
-      }
-      showToast(`Kode konfirmasi telah dikirim ke ${email}`, "info");
-      setStep(2);
+      setEmailSent(true);
+      showToast(`${t(T.forgot.sentTitle)} (${email})`, "info");
     } else {
-      setError(res.error || "Email UB tidak terdaftar dalam sistem Pustakability.");
+      setError(res.error || t(T.forgot.userNotFoundErr));
     }
   };
 
-  // Step 2: Confirm Code & Reset Password
+  // Step 2: Reset Password (arrived from Email Link)
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    if (code.trim().length !== 6) {
-      setError("Masukkan 6 digit kode konfirmasi.");
-      return;
-    }
-    if (newPassword.length < 6) {
-      setError("Kata sandi baru minimal 6 karakter.");
+    if (newPassword.length < 8) {
+      setError(t(T.forgot.passMinErr));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("Konfirmasi kata sandi baru tidak cocok.");
+      setError(t(T.forgot.passMismatchErr));
       return;
     }
 
     setLoading(true);
-    const res = await apiResetPassword(email, code, newPassword);
+    const res = await apiResetPassword(email, "", newPassword);
     setLoading(false);
 
     if (res.success) {
-      showToast("Kata sandi berhasil diperbarui! Silakan login.", "success");
+      showToast(t(T.forgot.resetSuccessToast), "success");
       if (onSuccessLogin) onSuccessLogin(email);
       onClose();
     } else {
-      setError(res.error || "Kode konfirmasi tidak valid atau telah kadaluarsa.");
+      setError(res.error || t(T.forgot.resetExpiredErr));
     }
   };
 
@@ -95,18 +89,18 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
       aria-labelledby="forgot-modal-title"
     >
       <div
-        className="relative w-full max-w-md rounded-2xl shadow-2xl border flex flex-col overflow-hidden transition-all"
+        className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-2xl shadow-2xl border flex flex-col transition-all"
         style={{ backgroundColor: modalBg, borderColor: border }}
       >
         {/* Header */}
         <div
-          className="flex items-center justify-between px-6 py-4 border-b"
+          className="flex items-center justify-between px-6 py-4 border-b sticky top-0 z-10"
           style={{ backgroundColor: headerBg, borderColor: border }}
         >
           <div className="flex items-center gap-2.5">
             <KeyRound className="w-5 h-5 text-[#3B5BDB]" aria-hidden="true" />
             <h2 id="forgot-modal-title" className="font-bold text-lg" style={{ color: text }}>
-              Reset Kata Sandi
+              {t(T.forgot.modalTitle)}
             </h2>
           </div>
           <button
@@ -121,110 +115,89 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
         {/* Body */}
         <div className="p-6">
           {step === 1 ? (
-            <form onSubmit={handleSendCode} className="space-y-4">
-              <p style={{ color: muted, fontSize: "0.875rem", lineHeight: 1.5 }}>
-                Masukkan alamat email UB terdaftar Anda. Kami akan mengirimkan kode konfirmasi 6-digit untuk me-reset kata sandi.
-              </p>
-
-              <div>
-                <label
-                  htmlFor="forgot-email"
-                  style={{ fontSize: "0.85rem", fontWeight: 600, color: text, display: "block", marginBottom: "0.375rem" }}
+            emailSent ? (
+              <div className="text-center py-4 space-y-4">
+                <div className="w-14 h-14 rounded-full bg-emerald-500/10 text-emerald-500 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-8 h-8" />
+                </div>
+                <h3 className="font-bold text-lg" style={{ color: text }}>
+                  {t(T.forgot.sentTitle)}
+                </h3>
+                <p style={{ color: muted, fontSize: "0.875rem", lineHeight: 1.5 }}>
+                  {t(T.forgot.sentDesc)} <strong>{email}</strong>. {t(T.forgot.sentCheckInbox)}
+                </p>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="w-full py-3 rounded-xl font-semibold text-white mt-2 active:scale-95 transition-all"
+                  style={{ background: "linear-gradient(135deg, #0A1172, #3B5BDB)" }}
                 >
-                  Email UB Terdaftar
-                </label>
-                <div className="relative">
-                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
-                  <input
-                    id="forgot-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="nama@student.ub.ac.id"
-                    required
-                    className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
-                    style={{
-                      backgroundColor: inputBg,
-                      border: `1.5px solid ${error ? "#EF4444" : border}`,
-                      color: text,
-                      fontSize: "0.95rem",
-                    }}
-                  />
-                </div>
+                  {t(T.forgot.closeBtn)}
+                </button>
               </div>
+            ) : (
+              <form onSubmit={handleSendLink} className="space-y-4">
+                <p style={{ color: muted, fontSize: "0.875rem", lineHeight: 1.5 }}>
+                  {t(T.forgot.step1Desc)}
+                </p>
 
-              {error && (
-                <div className="rounded-lg p-3 flex items-start gap-2 bg-red-500/10 border border-red-500/30 text-red-500 text-xs">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{error}</span>
+                <div>
+                  <label
+                    htmlFor="forgot-email"
+                    style={{ fontSize: "0.85rem", fontWeight: 600, color: text, display: "block", marginBottom: "0.375rem" }}
+                  >
+                    {t(T.forgot.emailLabel)}
+                  </label>
+                  <div className="relative">
+                    <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" aria-hidden="true" />
+                    <input
+                      id="forgot-email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder={t(T.forgot.emailPh)}
+                      required
+                      className="w-full pl-11 pr-4 py-3 rounded-xl outline-none transition-all"
+                      style={{
+                        backgroundColor: inputBg,
+                        border: `1.5px solid ${error ? "#EF4444" : border}`,
+                        color: text,
+                        fontSize: "0.95rem",
+                      }}
+                    />
+                  </div>
                 </div>
-              )}
 
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 rounded-xl font-semibold text-white active:scale-95 transition-all flex items-center justify-center gap-2"
-                style={{
-                  background: loading ? "#94A3B8" : "linear-gradient(135deg, #0A1172, #3B5BDB)",
-                  cursor: loading ? "not-allowed" : "pointer",
-                }}
-              >
-                {loading ? "Mengirim Kode..." : "Kirim Kode Konfirmasi via Email"}
-              </button>
-            </form>
+                {error && (
+                  <div className="rounded-lg p-3 flex items-start gap-2 bg-red-500/10 border border-red-500/30 text-red-500 text-xs">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{error}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3 rounded-xl font-semibold text-white active:scale-95 transition-all flex items-center justify-center gap-2"
+                  style={{
+                    background: loading ? "#94A3B8" : "linear-gradient(135deg, #0A1172, #3B5BDB)",
+                    cursor: loading ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {loading ? t(T.forgot.sendingBtn) : t(T.forgot.sendBtn)}
+                </button>
+              </form>
+            )
           ) : (
             <form onSubmit={handleResetPassword} className="space-y-4">
-              {simulatedCode && (
-                <div className="p-3.5 rounded-xl border bg-blue-500/10 border-blue-500/30 text-xs space-y-2">
-                  <div className="flex items-center justify-between font-semibold border-b border-blue-500/20 pb-1.5" style={{ color: dm ? "#93C5FD" : "#1E40AF" }}>
-                    <div className="flex items-center gap-1.5">
-                      <Mail className="w-4 h-4 text-[#00D4AC]" />
-                      <span>Simulasi Inbox Email ({email})</span>
-                    </div>
-                    <span className="text-[0.65rem] px-2 py-0.5 rounded bg-blue-500/20 text-blue-300">15 Mins</span>
-                  </div>
-                  <div style={{ color: dm ? "#E2E8F0" : "#1E293B" }}>
-                    <strong>Subjek:</strong> Kode Konfirmasi Reset Kata Sandi
-                  </div>
-                  <div className="flex items-center justify-between pt-1">
-                    <span style={{ color: muted }}>Kode Konfirmasi Anda:</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setCode(simulatedCode);
-                        showToast("Kode disalin ke kolom input", "info");
-                      }}
-                      className="font-mono text-sm font-bold px-2.5 py-1 rounded bg-[#00D4AC]/20 text-[#00D4AC] hover:bg-[#00D4AC]/30 transition-colors"
-                      title="Klik untuk menyalin kode"
-                    >
-                      {simulatedCode} 📋
-                    </button>
-                  </div>
+              <div className="p-3.5 rounded-xl border bg-emerald-500/10 border-emerald-500/30 text-xs space-y-1">
+                <div className="flex items-center gap-1.5 font-semibold text-emerald-500">
+                  <ShieldCheck className="w-4 h-4" />
+                  <span>{t(T.forgot.verifiedTitle)}</span>
                 </div>
-              )}
-
-              <div>
-                <label
-                  htmlFor="reset-code"
-                  style={{ fontSize: "0.85rem", fontWeight: 600, color: text, display: "block", marginBottom: "0.375rem" }}
-                >
-                  Kode Konfirmasi Email (6 Digit)
-                </label>
-                <input
-                  id="reset-code"
-                  type="text"
-                  maxLength={6}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="123456"
-                  required
-                  className="w-full px-4 py-3 rounded-xl outline-none font-mono text-center text-lg tracking-widest transition-all"
-                  style={{
-                    backgroundColor: inputBg,
-                    border: `1.5px solid ${error ? "#EF4444" : border}`,
-                    color: text,
-                  }}
-                />
+                <p style={{ color: dm ? "#CBD5E1" : "#334155" }}>
+                  {t(T.forgot.verifiedDesc)}
+                </p>
               </div>
 
               <div>
@@ -232,16 +205,16 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
                   htmlFor="new-password"
                   style={{ fontSize: "0.85rem", fontWeight: 600, color: text, display: "block", marginBottom: "0.375rem" }}
                 >
-                  Kata Sandi Baru
+                  {t(T.forgot.newPasswordLabel)}
                 </label>
                 <input
                   id="new-password"
                   name="new-password"
                   autoComplete="new-password"
-                  type="text"
+                  type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Minimal 6 karakter"
+                  placeholder={t(T.forgot.newPasswordPh)}
                   required
                   className="w-full px-4 py-3 rounded-xl outline-none transition-all"
                   style={{
@@ -258,16 +231,16 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
                   htmlFor="confirm-password"
                   style={{ fontSize: "0.85rem", fontWeight: 600, color: text, display: "block", marginBottom: "0.375rem" }}
                 >
-                  Konfirmasi Kata Sandi Baru
+                  {t(T.forgot.confirmPassLabel)}
                 </label>
                 <input
                   id="confirm-password"
                   name="confirm-password"
                   autoComplete="new-password"
-                  type="text"
+                  type="password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="Ulangi kata sandi baru"
+                  placeholder={t(T.forgot.confirmPassPh)}
                   required
                   className="w-full px-4 py-3 rounded-xl outline-none transition-all"
                   style={{
@@ -294,7 +267,7 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
                   style={{ borderColor: border }}
                 >
                   <ArrowLeft className="w-4 h-4" />
-                  Kembali
+                  {t(T.forgot.backBtn)}
                 </button>
                 <button
                   type="submit"
@@ -305,7 +278,7 @@ export function ForgotPasswordModal({ darkMode: dm, onClose, onSuccessLogin }: F
                     cursor: loading ? "not-allowed" : "pointer",
                   }}
                 >
-                  {loading ? "Memproses..." : "Ubah Kata Sandi"}
+                  {loading ? t(T.forgot.submittingBtn) : t(T.forgot.submitBtn)}
                 </button>
               </div>
             </form>

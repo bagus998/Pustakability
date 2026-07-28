@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff, BookOpen, ArrowLeft, KeyRound } from "lucide-react";
 import type { Page } from "../App";
 import { useLanguage } from "../i18n/LanguageContext";
@@ -17,8 +17,18 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showForgotModal, setShowForgotModal] = useState(false);
+  const [initialStep, setInitialStep] = useState<1 | 2>(1);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Check if user clicked a recovery link from Supabase Auth email
+    const fullUrl = window.location.href;
+    if (fullUrl.includes("type=recovery") || fullUrl.includes("access_token=") || fullUrl.includes("error=")) {
+      setInitialStep(2);
+      setShowForgotModal(true);
+    }
+  }, []);
 
   const bg = dm ? "#0D1117" : "#F5F7FF";
   const card = dm ? "#161B2E" : "#FFFFFF";
@@ -165,7 +175,7 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
                   style={{ color: "#3B5BDB" }}
                 >
                   <KeyRound className="w-3.5 h-3.5" />
-                  Lupa Password?
+                  {t(T.login.forgotLink)}
                 </button>
               </div>
             </div>
@@ -225,7 +235,13 @@ export function LoginPage({ darkMode: dm, onLogin, onNavigate }: LoginPageProps)
         {showForgotModal && (
           <ForgotPasswordModal
             darkMode={dm}
-            onClose={() => setShowForgotModal(false)}
+            initialStep={initialStep}
+            onClose={() => {
+              setShowForgotModal(false);
+              if (typeof window !== "undefined" && window.history && window.history.replaceState) {
+                window.history.replaceState(null, "", window.location.pathname);
+              }
+            }}
             onSuccessLogin={(resetEmail) => setEmail(resetEmail)}
           />
         )}

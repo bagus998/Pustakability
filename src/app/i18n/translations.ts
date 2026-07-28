@@ -18,6 +18,7 @@ export const t = {
     viewCatalog:  { id: "Jelajahi Koleksi", en: "Browse Collections" },
     darkMode:     { id: "Mode gelap",   en: "Dark mode" },
     lightMode:    { id: "Mode terang",  en: "Light mode" },
+    skipToMain:   { id: "Lewati ke konten utama", en: "Skip to main content" },
   },
 
   // ── Roles ────────────────────────────────────────────────
@@ -220,6 +221,37 @@ export const t = {
     back:        { id: "Kembali ke Beranda", en: "Back to Home" },
     show:        { id: "Tampilkan kata sandi", en: "Show password" },
     hide:        { id: "Sembunyikan kata sandi", en: "Hide password" },
+    forgotLink:  { id: "Lupa Password?", en: "Forgot Password?" },
+  },
+
+  // ── Forgot Password ───────────────────────────────────────
+  forgot: {
+    modalTitle:       { id: "Reset Kata Sandi", en: "Reset Password" },
+    step1Desc:        { id: "Masukkan alamat email UB terdaftar Anda. Kami akan mengirimkan tautan reset kata sandi langsung ke inbox email Anda.", en: "Enter your registered UB email address. We will send a password reset link directly to your inbox." },
+    emailLabel:       { id: "Email UB Terdaftar", en: "Registered UB Email" },
+    emailPh:          { id: "nama@student.ub.ac.id", en: "name@student.ub.ac.id" },
+    invalidEmailErr:  { id: "Masukkan alamat email UB yang valid.", en: "Please enter a valid UB email address." },
+    userNotFoundErr:  { id: "Email UB tidak terdaftar dalam sistem Pustakability.", en: "UB email is not registered in Pustakability." },
+    rateLimitErr:     { id: "Batas pengiriman email tercapai (Rate Limit 429). Mohon tunggu beberapa menit.", en: "Email rate limit reached (429). Please wait a few minutes." },
+    sendBtn:          { id: "Kirim Tautan Reset via Email", en: "Send Reset Link via Email" },
+    sendingBtn:       { id: "Mengirim Tautan...", en: "Sending Link..." },
+    sentTitle:        { id: "Tautan Reset Terkirim!", en: "Reset Link Sent!" },
+    sentDesc:         { id: "Tautan verifikasi me-reset kata sandi telah dikirimkan ke", en: "Password reset verification link has been sent to" },
+    sentCheckInbox:   { id: "Silakan periksa inbox atau folder Spam email Anda dan klik tombol Reset Password.", en: "Please check your inbox or Spam folder and click the Reset Password button." },
+    closeBtn:         { id: "Mengerti, Tutup", en: "Got it, Close" },
+    verifiedTitle:    { id: "Tautan Konfirmasi Email Terverifikasi", en: "Email Verification Link Verified" },
+    verifiedDesc:     { id: "Anda telah mengklik tautan verifikasi email. Silakan masukkan kata sandi baru Anda di bawah ini.", en: "You clicked the email verification link. Please enter your new password below." },
+    newPasswordLabel: { id: "Kata Sandi Baru", en: "New Password" },
+    newPasswordPh:    { id: "Minimal 8 karakter", en: "Minimum 8 characters" },
+    confirmPassLabel: { id: "Konfirmasi Kata Sandi Baru", en: "Confirm New Password" },
+    confirmPassPh:    { id: "Ulangi kata sandi baru", en: "Re-enter new password" },
+    passMinErr:       { id: "Kata sandi baru minimal 8 karakter.", en: "New password must be at least 8 characters." },
+    passMismatchErr:  { id: "Konfirmasi kata sandi baru tidak cocok.", en: "New password confirmation does not match." },
+    resetSuccessToast:{ id: "Kata sandi berhasil diperbarui! Silakan login.", en: "Password successfully updated! Please log in." },
+    resetExpiredErr:  { id: "Tautan verifikasi tidak valid atau telah kadaluarsa.", en: "Verification link is invalid or has expired." },
+    submittingBtn:    { id: "Memproses...", en: "Processing..." },
+    submitBtn:        { id: "Ubah Kata Sandi", en: "Update Password" },
+    backBtn:          { id: "Kembali", en: "Back" },
   },
 
   // ── Register ──────────────────────────────────────────────

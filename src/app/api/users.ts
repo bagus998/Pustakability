@@ -94,9 +94,44 @@ export async function apiLoginUser(
   email: string,
   password: string
 ): Promise<{ success: boolean; user?: AppUser; reason?: "invalid" | "pending" }> {
+  const cleanEmail = email.trim().toLowerCase();
+
+  // 1. Authenticate directly against Supabase Auth service (auth.users)
+  try {
+    const authRes = await fetch(`https://${projectId}.supabase.co/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: {
+        apikey: publicAnonKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: cleanEmail, password }),
+    });
+    if (authRes.ok) {
+      const authData = await authRes.json();
+      if (authData?.user) {
+        const users = await apiFetchUsers();
+        const found = users.find((u) => u.email.toLowerCase() === cleanEmail);
+        const appUser: AppUser = found || {
+          id: authData.user.id,
+          name: authData.user.user_metadata?.name || cleanEmail.split("@")[0] || "User",
+          email: cleanEmail,
+          password,
+          role: authData.user.user_metadata?.role || "user",
+          faculty: authData.user.user_metadata?.faculty || "Teknik",
+          status: "active",
+          joined: new Date().toISOString().split("T")[0],
+        };
+        if (appUser.status === "pending") return { success: false, reason: "pending" };
+        return { success: true, user: appUser };
+      }
+    }
+  } catch (e) {
+    console.warn("Supabase Auth password login notice:", e);
+  }
+
+  // 2. Fallback check against profiles and local users table
   try {
     const users = await apiFetchUsers();
-    const cleanEmail = email.trim().toLowerCase();
     const found = users.find(
       (u) => u.email.toLowerCase() === cleanEmail && (u.password === password || password === "User123")
     );
@@ -261,18 +296,78 @@ export async function apiForgotPassword(
   email: string
 ): Promise<{ success: boolean; code?: string; error?: string }> {
   const cleanEmail = email.trim().toLowerCase();
+  const origin = typeof window !== "undefined" ? window.location.origin : (import.meta.env.VITE_APP_URL || "");
+  const redirectUrl = origin ? `${origin}/login` : undefined;
+
+  // 1. Trigger Supabase Auth built-in email recovery service (sends real email via Supabase SMTP)
+  try {
+    const recoverUrl = redirectUrl
+      ? `https://${projectId}.supabase.co/auth/v1/recover?redirect_to=${encodeURIComponent(redirectUrl)}`
+      : `https://${projectId}.supabase.co/auth/v1/recover`;
+
+    const authRes = await fetch(recoverUrl, {
+      method: "POST",
+      headers: {
+        apikey: publicAnonKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: cleanEmail }),
+    });
+    const resText = await authRes.text();
+    let resJson: any = {};
+    try {
+      resJson = JSON.parse(resText);
+    } catch {}
+
+    if (!authRes.ok) {
+      if (authRes.status === 429 || resJson?.error_code === "over_email_send_rate_limit") {
+        return {
+          success: false,
+          error: "Batas pengiriman email tercapai (Rate Limit 429). Mohon tunggu beberapa menit atau sesuaikan 'Rate Limits' di Supabase Auth Dashboard.",
+        };
+      }
+      console.warn("Supabase Auth recover notice:", authRes.status, resText);
+    } else {
+      console.log(`Supabase Auth password reset email successfully triggered for ${cleanEmail}`);
+    }
+  } catch (e) {
+    console.warn("Supabase Auth recover notice:", e);
+  }
+
+  // 2. Trigger backend Edge Function reset if running
+  try {
+    const data = await request<{ success: boolean; code?: string }>("/auth/forgot-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: cleanEmail }),
+    });
+    if (data.code) return { success: true, code: data.code };
+  } catch (e) {
+    console.warn("Edge function forgot-password notice:", e);
+  }
+
+  // 3. Check registered accounts
   try {
     const users = await apiFetchUsers();
     const found = users.find((u) => u.email.toLowerCase() === cleanEmail);
     if (!found && !cleanEmail.includes("@student.ub.ac.id") && !cleanEmail.includes("@ub.ac.id")) {
       return { success: false, error: "Email UB tidak terdaftar dalam sistem Pustakability." };
     }
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    return { success: true, code };
-  } catch {
-    const code = String(Math.floor(100000 + Math.random() * 900000));
-    return { success: true, code };
+  } catch (e) {
+    console.warn("User validation notice:", e);
   }
+
+  const code = String(Math.floor(100000 + Math.random() * 900000));
+  return { success: true, code };
+}
+
+function getAccessTokenFromUrl(): string | null {
+  if (typeof window === "undefined") return null;
+  const hash = window.location.hash.startsWith("#")
+    ? window.location.hash.substring(1)
+    : window.location.hash;
+  const params = new URLSearchParams(hash || window.location.search);
+  return params.get("access_token");
 }
 
 export async function apiResetPassword(
@@ -280,12 +375,62 @@ export async function apiResetPassword(
   code: string,
   newPassword: string
 ): Promise<{ success: boolean; error?: string }> {
-  const cleanEmail = email.trim().toLowerCase();
+  let cleanEmail = email.trim().toLowerCase();
+  const accessToken = getAccessTokenFromUrl();
+
+  // 1. If we have access_token from email link, update Supabase Auth user password
+  if (accessToken) {
+    try {
+      const authRes = await fetch(`https://${projectId}.supabase.co/auth/v1/user`, {
+        method: "PUT",
+        headers: {
+          apikey: publicAnonKey,
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password: newPassword }),
+      });
+      if (authRes.ok) {
+        const userData = await authRes.json();
+        if (userData?.email) {
+          cleanEmail = userData.email.toLowerCase();
+          console.log(`Supabase Auth password successfully updated for ${cleanEmail}`);
+        }
+      } else {
+        console.warn("Supabase Auth password update response:", authRes.status, await authRes.text());
+      }
+    } catch (e) {
+      console.warn("Supabase Auth password update notice:", e);
+    }
+  }
+
+  // 2. Fallback edge function trigger
+  try {
+    await request<{ success: boolean }>("/auth/reset-password", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email: cleanEmail, code, newPassword }),
+    });
+  } catch (e) {
+    console.warn("Edge function reset password notice:", e);
+  }
+
+  // 3. Update database table & profiles
   try {
     const users = await apiFetchUsers();
     const found = users.find((u) => u.email.toLowerCase() === cleanEmail);
     if (found) {
       await apiUpdateUser(found.id, { password: newPassword });
+    } else if (cleanEmail) {
+      await fetch(`https://${projectId}.supabase.co/rest/v1/profiles?email=eq.${encodeURIComponent(cleanEmail)}`, {
+        method: "PATCH",
+        headers: {
+          apikey: publicAnonKey,
+          Authorization: `Bearer ${publicAnonKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password: newPassword }),
+      });
     }
     return { success: true };
   } catch {
