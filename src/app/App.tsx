@@ -42,14 +42,7 @@ export interface AuthUser {
 
 export type Page = "home" | "catalog" | "login" | "register" | "ebook" | "admin" | "volunteer";
 
-const INITIAL_USERS: AppUser[] = [
-  { id: "1", name: "Administrator", email: "admin@ub.ac.id", password: "Admin123", role: "admin", faculty: "Rektorat", status: "active", joined: "2024-01-01" },
-  { id: "2", name: "Siti Rahayu", email: "mahasiswa@ub.ac.id", password: "User123", role: "user", faculty: "MIPA", status: "active", joined: "2024-03-10" },
-  { id: "3", name: "Budi Santoso", email: "relawan@ub.ac.id", password: "Vol123", role: "volunteer", faculty: "Teknik", status: "active", joined: "2024-01-20" },
-  { id: "4", name: "Ahmad Fauzan", email: "ahmad@student.ub.ac.id", password: "User123", role: "user", faculty: "Hukum", status: "active", joined: "2024-02-15" },
-  { id: "5", name: "Rizky Pratama", email: "rizky@student.ub.ac.id", password: "User123", role: "user", faculty: "Teknik", status: "pending", joined: "2024-04-01" },
-  { id: "6", name: "Dewi Lestari", email: "dewi@student.ub.ac.id", password: "Vol123", role: "volunteer", faculty: "Ilmu Budaya", status: "active", joined: "2024-03-25" },
-];
+const INITIAL_USERS: AppUser[] = [];
 
 const PAGE_TO_PATH: Record<Page, string> = {
   home: "/home",

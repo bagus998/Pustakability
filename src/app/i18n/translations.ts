@@ -295,6 +295,15 @@ export const t = {
     currentPassErr:    { id: "Kata sandi saat ini salah. Mohon periksa kembali.", en: "Current password is incorrect. Please check again." },
     passMinErr:        { id: "Kata sandi baru minimal 8 karakter.", en: "New password must be at least 8 characters." },
     passMismatchErr:   { id: "Konfirmasi kata sandi baru tidak cocok.", en: "New password confirmation does not match." },
+    removePhoto:       { id: "Hapus Foto", en: "Remove Photo" },
+    securityDesc:      { id: "Untuk keamanan akun, Anda harus memasukkan kata sandi saat ini sebelum menetapkan kata sandi baru.", en: "For account security, you must enter your current password before setting a new one." },
+    changeEmailLabel:  { id: "Ubah Email", en: "Change Email" },
+    newEmailLabel:     { id: "Email Baru", en: "New Email" },
+    newEmailPh:        { id: "Masukkan email baru", en: "Enter new email" },
+    changeEmailBtn:    { id: "Kirim Verifikasi Email", en: "Send Email Verification" },
+    changingEmailBtn:  { id: "Mengirim...", en: "Sending..." },
+    emailChangeSuccess:{ id: "Email verifikasi telah dikirim ke alamat baru. Silakan periksa inbox Anda.", en: "Verification email sent to your new address. Please check your inbox." },
+    emailChangeErr:    { id: "Gagal mengirim verifikasi email.", en: "Failed to send email verification." },
   },
 
   // ── Register ──────────────────────────────────────────────

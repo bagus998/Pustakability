@@ -126,7 +126,7 @@ export async function apiLoginUser(
   try {
     const users = await apiFetchUsers();
     const found = users.find(
-      (u) => u.email.toLowerCase() === cleanEmail && (u.password === password || password === "User123")
+      (u) => u.email.toLowerCase() === cleanEmail && u.password === password
     );
     if (!found) return { success: false, reason: "invalid" };
     if (found.status === "pending") return { success: false, reason: "pending" };
@@ -479,5 +479,58 @@ export async function apiChangePassword(
   } catch (e) {
     console.warn("Change password error:", e);
     return { success: false, error: "Gagal memperbarui kata sandi." };
+  }
+}
+
+export async function apiChangeEmail(
+  currentEmail: string,
+  currentPassword: string,
+  newEmail: string
+): Promise<{ success: boolean; error?: string }> {
+  const cleanCurrentEmail = currentEmail.trim().toLowerCase();
+  const cleanNewEmail = newEmail.trim().toLowerCase();
+
+  // 1. Verify current password to get an access token
+  try {
+    const authRes = await fetch(`https://${projectId}.supabase.co/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: {
+        apikey: publicAnonKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: cleanCurrentEmail, password: currentPassword }),
+    });
+
+    if (!authRes.ok) {
+      return { success: false, error: "currentPassErr" };
+    }
+
+    const authData = await authRes.json();
+    const accessToken = authData?.access_token;
+
+    if (!accessToken) {
+      return { success: false, error: "currentPassErr" };
+    }
+
+    // 2. Request email change via Supabase Auth — sends verification to new email
+    const updateRes = await fetch(`https://${projectId}.supabase.co/auth/v1/user`, {
+      method: "PUT",
+      headers: {
+        apikey: publicAnonKey,
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: cleanNewEmail }),
+    });
+
+    if (updateRes.ok) {
+      return { success: true };
+    } else {
+      const errText = await updateRes.text();
+      return { success: false, error: errText || "emailChangeErr" };
+    }
+  } catch (e) {
+    console.warn("Change email error:", e);
+    return { success: false, error: "emailChangeErr" };
   }
 }

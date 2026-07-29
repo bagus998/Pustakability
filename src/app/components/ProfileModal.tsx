@@ -1,10 +1,11 @@
 import { useState, useRef } from "react";
-import { X, User, Lock, Upload, Save, KeyRound, AlertCircle, CheckCircle2, ShieldCheck, CreditCard } from "lucide-react";
+import { X, User, Lock, Upload, Save, KeyRound, AlertCircle, CheckCircle2, ShieldCheck, CreditCard, Mail } from "lucide-react";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
 import { AppUser } from "./EditUserModal";
 import { useToast } from "../contexts/ToastContext";
-import { apiChangePassword } from "../api/users";
+import { apiChangePassword, apiChangeEmail } from "../api/users";
+import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 
 interface ProfileModalProps {
   user: AppUser;
@@ -20,6 +21,38 @@ const faculties = [
   "Ilmu Komputer", "Ilmu Kesehatan", "Vokasi", "Rektorat",
 ];
 
+async function uploadAvatarToStorage(userId: string, file: File): Promise<string | null> {
+  const ext = file.name.split(".").pop() || "png";
+  const filePath = `avatars/${userId}.${ext}`;
+
+  try {
+    // Upload to Supabase Storage bucket "avatars"
+    const uploadRes = await fetch(
+      `https://${projectId}.supabase.co/storage/v1/object/avatars/${filePath}`,
+      {
+        method: "POST",
+        headers: {
+          apikey: publicAnonKey,
+          Authorization: `Bearer ${publicAnonKey}`,
+          "Content-Type": file.type,
+          "x-upsert": "true",
+        },
+        body: file,
+      }
+    );
+
+    if (uploadRes.ok) {
+      return `https://${projectId}.supabase.co/storage/v1/object/public/avatars/${filePath}`;
+    }
+
+    console.warn("Avatar upload response:", uploadRes.status, await uploadRes.text());
+    return null;
+  } catch (e) {
+    console.warn("Avatar upload error:", e);
+    return null;
+  }
+}
+
 export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: ProfileModalProps) {
   const { t } = useLanguage();
   const { showToast } = useToast();
@@ -33,6 +66,8 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
   const [faculty, setFaculty] = useState(user.faculty || "Teknik");
   const [disability, setDisability] = useState(user.disability || "");
   const [avatarUrl, setAvatarUrl] = useState(user.avatarUrl || "");
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
+  const [avatarPreview, setAvatarPreview] = useState(user.avatarUrl || "");
   const [savingInfo, setSavingInfo] = useState(false);
 
   // Security / Password Form State
@@ -41,6 +76,12 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passError, setPassError] = useState("");
   const [updatingPass, setUpdatingPass] = useState(false);
+
+  // Email Change State
+  const [newEmail, setNewEmail] = useState("");
+  const [emailPassword, setEmailPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [changingEmail, setChangingEmail] = useState(false);
 
   const modalBg  = dm ? "#161B2E" : "#FFFFFF";
   const border   = dm ? "#1E2D4F" : "#E5E7EB";
@@ -54,13 +95,14 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        showToast("Ukuran foto maksimal 5MB", "error");
+        showToast("Ukuran foto maksimal 5MB / Max photo size 5MB", "error");
         return;
       }
+      setAvatarFile(file);
       const reader = new FileReader();
       reader.onload = () => {
         if (typeof reader.result === "string") {
-          setAvatarUrl(reader.result);
+          setAvatarPreview(reader.result);
         }
       };
       reader.readAsDataURL(file);
@@ -74,12 +116,25 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
 
     setSavingInfo(true);
     try {
+      let finalAvatarUrl = avatarUrl;
+
+      // Upload avatar file to Supabase Storage if a new file was selected
+      if (avatarFile) {
+        const uploadedUrl = await uploadAvatarToStorage(user.id, avatarFile);
+        if (uploadedUrl) {
+          finalAvatarUrl = uploadedUrl;
+        } else {
+          // Fallback: store as data URL if storage bucket doesn't exist
+          finalAvatarUrl = avatarPreview;
+        }
+      }
+
       await onUpdateUser(user.id, {
         name: name.trim(),
         nim: nim.trim(),
         faculty,
         disability: disability.trim(),
-        avatarUrl,
+        avatarUrl: finalAvatarUrl,
       });
       showToast(t(T.profile.saveSuccess), "success");
       onClose();
@@ -123,6 +178,33 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
         setPassError(t(T.profile.currentPassErr));
       } else {
         setPassError(res.error || t(T.profile.currentPassErr));
+      }
+    }
+  };
+
+  // Change Email
+  const handleChangeEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmailError("");
+
+    if (!newEmail.trim() || !emailPassword) {
+      setEmailError(t(T.profile.currentPassErr));
+      return;
+    }
+
+    setChangingEmail(true);
+    const res = await apiChangeEmail(user.email, emailPassword, newEmail.trim());
+    setChangingEmail(false);
+
+    if (res.success) {
+      showToast(t(T.profile.emailChangeSuccess), "success");
+      setNewEmail("");
+      setEmailPassword("");
+    } else {
+      if (res.error === "currentPassErr") {
+        setEmailError(t(T.profile.currentPassErr));
+      } else {
+        setEmailError(t(T.profile.emailChangeErr));
       }
     }
   };
@@ -195,9 +277,9 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
               {/* Profile Avatar Upload */}
               <div className="flex flex-col sm:flex-row items-center gap-4 p-4 rounded-xl border" style={{ borderColor: border, backgroundColor: inputBg }}>
                 <div className="relative group">
-                  {avatarUrl ? (
+                  {avatarPreview ? (
                     <img
-                      src={avatarUrl}
+                      src={avatarPreview}
                       alt={name || "Avatar"}
                       className="w-20 h-20 rounded-full object-cover border-2 border-[#3B5BDB] shadow-md"
                     />
@@ -230,13 +312,13 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
                       <Upload className="w-3.5 h-3.5" />
                       {t(T.profile.avatarUploadBtn)}
                     </button>
-                    {avatarUrl && (
+                    {avatarPreview && (
                       <button
                         type="button"
-                        onClick={() => setAvatarUrl("")}
+                        onClick={() => { setAvatarPreview(""); setAvatarUrl(""); setAvatarFile(null); }}
                         className="px-3 py-1.5 rounded-lg text-xs font-semibold text-red-500 hover:bg-red-500/10 transition-colors"
                       >
-                        Hapus Foto
+                        {t(T.profile.removePhoto)}
                       </button>
                     )}
                   </div>
@@ -286,7 +368,7 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
                 </div>
               </div>
 
-              {/* Email (Readonly) & Role (Badge) */}
+              {/* Email (Read-only display) & Role (Badge) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs font-semibold mb-1" style={{ color: muted }}>
@@ -361,70 +443,71 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
               </div>
             </form>
           ) : (
-            <form onSubmit={handleUpdatePassword} className="space-y-4">
-              <p className="text-xs leading-relaxed" style={{ color: muted }}>
-                Untuk keamanan akun, Anda harus memasukkan kata sandi saat ini sebelum menetapkan kata sandi baru.
-              </p>
+            <div className="space-y-6">
+              {/* Password Change Section */}
+              <form onSubmit={handleUpdatePassword} className="space-y-4">
+                <p className="text-xs leading-relaxed" style={{ color: muted }}>
+                  {t(T.profile.securityDesc)}
+                </p>
 
-              {/* Current Password */}
-              <div>
-                <label htmlFor="current-pass" className="block text-xs font-semibold mb-1" style={{ color: text }}>
-                  {t(T.profile.currentPassLabel)} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="current-pass"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder={t(T.profile.currentPassPh)}
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-sm"
-                  style={{ backgroundColor: inputBg, border: `1.5px solid ${passError ? "#EF4444" : border}`, color: text }}
-                />
-              </div>
-
-              {/* New Password */}
-              <div>
-                <label htmlFor="profile-new-pass" className="block text-xs font-semibold mb-1" style={{ color: text }}>
-                  {t(T.profile.newPassLabel)} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="profile-new-pass"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder={t(T.profile.newPassPh)}
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-sm"
-                  style={{ backgroundColor: inputBg, border: `1.5px solid ${passError ? "#EF4444" : border}`, color: text }}
-                />
-              </div>
-
-              {/* Confirm New Password */}
-              <div>
-                <label htmlFor="profile-confirm-pass" className="block text-xs font-semibold mb-1" style={{ color: text }}>
-                  {t(T.profile.confirmPassLabel)} <span className="text-red-500">*</span>
-                </label>
-                <input
-                  id="profile-confirm-pass"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder={t(T.profile.confirmPassPh)}
-                  required
-                  className="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-sm"
-                  style={{ backgroundColor: inputBg, border: `1.5px solid ${passError ? "#EF4444" : border}`, color: text }}
-                />
-              </div>
-
-              {passError && (
-                <div className="rounded-lg p-3 flex items-start gap-2 bg-red-500/10 border border-red-500/30 text-red-500 text-xs">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{passError}</span>
+                {/* Current Password */}
+                <div>
+                  <label htmlFor="current-pass" className="block text-xs font-semibold mb-1" style={{ color: text }}>
+                    {t(T.profile.currentPassLabel)} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="current-pass"
+                    type="password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder={t(T.profile.currentPassPh)}
+                    required
+                    className="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-sm"
+                    style={{ backgroundColor: inputBg, border: `1.5px solid ${passError ? "#EF4444" : border}`, color: text }}
+                  />
                 </div>
-              )}
 
-              <div className="pt-2">
+                {/* New Password */}
+                <div>
+                  <label htmlFor="profile-new-pass" className="block text-xs font-semibold mb-1" style={{ color: text }}>
+                    {t(T.profile.newPassLabel)} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="profile-new-pass"
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder={t(T.profile.newPassPh)}
+                    required
+                    className="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-sm"
+                    style={{ backgroundColor: inputBg, border: `1.5px solid ${passError ? "#EF4444" : border}`, color: text }}
+                  />
+                </div>
+
+                {/* Confirm New Password */}
+                <div>
+                  <label htmlFor="profile-confirm-pass" className="block text-xs font-semibold mb-1" style={{ color: text }}>
+                    {t(T.profile.confirmPassLabel)} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="profile-confirm-pass"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder={t(T.profile.confirmPassPh)}
+                    required
+                    className="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-sm"
+                    style={{ backgroundColor: inputBg, border: `1.5px solid ${passError ? "#EF4444" : border}`, color: text }}
+                  />
+                </div>
+
+                {passError && (
+                  <div className="rounded-lg p-3 flex items-start gap-2 bg-red-500/10 border border-red-500/30 text-red-500 text-xs">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{passError}</span>
+                  </div>
+                )}
+
                 <button
                   type="submit"
                   disabled={updatingPass}
@@ -437,8 +520,73 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
                   <KeyRound className="w-4 h-4" />
                   {updatingPass ? t(T.profile.updatingPassBtn) : t(T.profile.updatePassBtn)}
                 </button>
-              </div>
-            </form>
+              </form>
+
+              {/* Divider */}
+              <div style={{ height: "1px", backgroundColor: border }} />
+
+              {/* Email Change Section */}
+              <form onSubmit={handleChangeEmail} className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <Mail className="w-4 h-4 text-[#3B5BDB]" />
+                  <h3 className="font-semibold text-sm" style={{ color: text }}>
+                    {t(T.profile.changeEmailLabel)}
+                  </h3>
+                </div>
+
+                <div>
+                  <label htmlFor="email-pass" className="block text-xs font-semibold mb-1" style={{ color: text }}>
+                    {t(T.profile.currentPassLabel)} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="email-pass"
+                    type="password"
+                    value={emailPassword}
+                    onChange={(e) => setEmailPassword(e.target.value)}
+                    placeholder={t(T.profile.currentPassPh)}
+                    required
+                    className="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-sm"
+                    style={{ backgroundColor: inputBg, border: `1.5px solid ${emailError ? "#EF4444" : border}`, color: text }}
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="new-email" className="block text-xs font-semibold mb-1" style={{ color: text }}>
+                    {t(T.profile.newEmailLabel)} <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    id="new-email"
+                    type="email"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    placeholder={t(T.profile.newEmailPh)}
+                    required
+                    className="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-sm"
+                    style={{ backgroundColor: inputBg, border: `1.5px solid ${emailError ? "#EF4444" : border}`, color: text }}
+                  />
+                </div>
+
+                {emailError && (
+                  <div className="rounded-lg p-3 flex items-start gap-2 bg-red-500/10 border border-red-500/30 text-red-500 text-xs">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                    <span>{emailError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={changingEmail}
+                  className="w-full py-3 rounded-xl font-semibold text-white active:scale-95 transition-all flex items-center justify-center gap-2"
+                  style={{
+                    background: changingEmail ? "#94A3B8" : "linear-gradient(135deg, #0D7070, #00D4AC)",
+                    cursor: changingEmail ? "not-allowed" : "pointer",
+                  }}
+                >
+                  <Mail className="w-4 h-4" />
+                  {changingEmail ? t(T.profile.changingEmailBtn) : t(T.profile.changeEmailBtn)}
+                </button>
+              </form>
+            </div>
           )}
         </div>
       </div>
