@@ -23,7 +23,7 @@
 
 - **📖 Integrated Accessible E-Book Reader**:
   - Supports **EPUB**, **TXT**, and **PDF** formats with instant browser preview.
-  - **Text-to-Speech (TTS)** audio narration for auditory learning.
+  - Optimized for external screen readers (NVDA, JAWS, VoiceOver, TalkBack) with structured text.
   - Custom typography controls (Font size adjustment, line height, font family selection, and theme switching).
   - Interactive table of contents and bookmarking system.
 
@@ -80,8 +80,8 @@ Ensure you have **Node.js** (v18.0.0 or higher) and **npm** installed on your sy
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/bagus998/Pustakabillity_figma.git
-cd Pustakabillity_figma
+git clone https://github.com/bagus998/Pustakabillity.git
+cd Pustakabillity
 ```
 
 ### 2. Install Dependencies
@@ -113,7 +113,7 @@ The output files will be generated in the `dist/` directory.
 ## 📁 Project Structure
 
 ```text
-Pustakabillity_figma/
+Pustakabillity/
 ├── public/                  # Public static assets
 ├── src/
 │   ├── app/
