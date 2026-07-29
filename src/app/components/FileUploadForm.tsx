@@ -1,5 +1,7 @@
 import { useRef, useState, useCallback } from "react";
 import { Upload, File, X, CheckCircle, AlertCircle } from "lucide-react";
+import { useLanguage } from "../i18n/LanguageContext";
+import { t as T } from "../i18n/translations";
 
 const ACCEPTED = [".epub", ".txt", ".pdf"];
 const ACCEPTED_MIME = [
@@ -41,6 +43,7 @@ export function FileUploadForm({
   selectedFile,
   disabled,
 }: FileUploadFormProps) {
+  const { t } = useLanguage();
   const inputRef  = useRef<HTMLInputElement>(null);
   const [dragging, setDragging] = useState(false);
   const [error,    setError]    = useState("");
@@ -121,13 +124,13 @@ export function FileUploadForm({
           </div>
 
           <p style={{ fontSize: "0.95rem", fontWeight: 600, color: text, marginBottom: "0.4rem" }}>
-            {dragging ? "Lepaskan file di sini" : "Drag & drop file atau klik untuk memilih"}
+            {dragging ? (t(T.volunteer.form.dragDropText) || "Lepaskan file di sini") : t(T.volunteer.form.dragDropText)}
           </p>
           <p style={{ fontSize: "0.8rem", color: muted }}>
-            Format yang didukung: <strong>.epub</strong> · <strong>.txt</strong> · <strong>.pdf</strong>
+            {t(T.volunteer.form.supportedFormatsText)}
           </p>
           <p style={{ fontSize: "0.75rem", color: muted, marginTop: "0.25rem" }}>
-            Maksimum {MAX_MB} MB
+            {t(T.volunteer.form.maxSizeText)}
           </p>
 
           {/* Format badges */}

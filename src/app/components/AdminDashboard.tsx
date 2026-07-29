@@ -122,7 +122,7 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
             <div className="flex items-center gap-3 mt-3">
               <div className="flex items-center gap-1.5">
                 {apiAvailable
-                  ? <><Wifi className="w-4 h-4 text-[#00D4AC]" aria-hidden="true" /><span className="text-[#00D4AC]" style={{ fontSize: "0.78rem" }}>Terhubung ke Supabase</span></>
+                  ? <><Wifi className="w-4 h-4 text-[#00D4AC]" aria-hidden="true" /><span className="text-[#00D4AC]" style={{ fontSize: "0.78rem" }}>{t(T.admin.connectedToSupabase)}</span></>
                   : <><WifiOff className="w-4 h-4 text-yellow-400" aria-hidden="true" /><span className="text-yellow-400" style={{ fontSize: "0.78rem" }}>Mode offline — data lokal</span></>
                 }
               </div>
@@ -131,10 +131,10 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                 disabled={loading}
                 className="flex items-center gap-1 px-3 py-1 rounded-lg"
                 style={{ backgroundColor: "rgba(255,255,255,0.1)", color: "white", fontSize: "0.75rem" }}
-                aria-label="Segarkan data"
+                aria-label={t(T.admin.refresh)}
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${loading ? "animate-spin" : ""}`} aria-hidden="true" />
-                Segarkan
+                {t(T.admin.refresh)}
               </button>
             </div>
           </div>

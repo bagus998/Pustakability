@@ -101,6 +101,14 @@ export const t = {
       formats:    { title: { id: "Format Digital Aksesibel", en: "Accessible Digital Formats" }, desc: { id: "Koleksi buku tersedia dalam format teks digital, DAISY 3.0, PDF terstruktur, dan Braille Digital (BRF).", en: "Book collections available in digital text, DAISY 3.0, structured PDF, and Digital Braille (BRF)." } },
       pld:        { title: { id: "Layanan Transkrip PLD UB", en: "PLD UB Transcription Support" }, desc: { id: "Terintegrasi dengan Pusat Layanan Disabilitas UB untuk bantuan konversi buku dan pemenuhan format khusus.", en: "Integrated with UB Disability Services Center for book conversion assistance and custom formats." } },
     },
+    badges: {
+      accessible:   { id: "Aksesibel", en: "Accessible" },
+      contrast:     { id: "Kontras 4.5:1", en: "4.5:1 Contrast" },
+      reflow:       { id: "Reflow 200%", en: "200% Reflow" },
+      standardized: { id: "Terstandarisasi", en: "Standardized" },
+      pldCertified: { id: "Tersertifikasi PLD UB", en: "PLD UB Certified" },
+      wcagBadge:    { id: "WCAG 2.1 AA", en: "WCAG 2.1 AA" },
+    },
   },
 
   // ── Book Catalog Section ─────────────────────────────────
@@ -232,7 +240,7 @@ export const t = {
     emailPh:          { id: "nama@student.ub.ac.id", en: "name@student.ub.ac.id" },
     invalidEmailErr:  { id: "Masukkan alamat email UB yang valid.", en: "Please enter a valid UB email address." },
     userNotFoundErr:  { id: "Email UB tidak terdaftar dalam sistem Pustakability.", en: "UB email is not registered in Pustakability." },
-    rateLimitErr:     { id: "Batas pengiriman email tercapai (Rate Limit 429). Mohon tunggu beberapa menit.", en: "Email rate limit reached (429). Please wait a few minutes." },
+    rateLimitErr:     { id: "Batas pengiriman email tercapai (Rate Limit 429). Mohon tunggu beberapa menit atau sesuaikan 'Rate Limits' di Supabase Auth Dashboard.", en: "Email rate limit reached (Rate Limit 429). Please wait a few minutes or adjust 'Rate Limits' in Supabase Auth Dashboard." },
     sendBtn:          { id: "Kirim Tautan Reset via Email", en: "Send Reset Link via Email" },
     sendingBtn:       { id: "Mengirim Tautan...", en: "Sending Link..." },
     sentTitle:        { id: "Tautan Reset Terkirim!", en: "Reset Link Sent!" },
@@ -336,6 +344,8 @@ export const t = {
   admin: {
     title:        { id: "Admin Dashboard",       en: "Admin Dashboard" },
     subtitle:     { id: "Kelola pengguna, koleksi buku, dan validasi kontribusi volunteer", en: "Manage users, book collections, and volunteer contribution validation" },
+    connectedToSupabase: { id: "Terhubung ke Supabase", en: "Connected to Supabase" },
+    refresh:      { id: "Segarkan",               en: "Refresh" },
     tabs: {
       overview:  { id: "Ringkasan",              en: "Overview" },
       users:     { id: "Pengguna",               en: "Users" },
@@ -414,6 +424,10 @@ export const t = {
     },
     form: {
       title:       { id: "Formulir Pengajuan Buku Baru", en: "New Book Submission Form" },
+      fileLabel:   { id: "FILE BUKU (.EPUB / .TXT / .PDF)", en: "BOOK FILE (.EPUB / .TXT / .PDF)" },
+      dragDropText:{ id: "Drag & drop file atau klik untuk memilih", en: "Drag & drop file or click to select" },
+      supportedFormatsText: { id: "Format yang didukung: .epub · .txt · .pdf", en: "Supported formats: .epub · .txt · .pdf" },
+      maxSizeText: { id: "Maksimum 50 MB",          en: "Maximum 50 MB" },
       bookTitle:   { id: "Judul Buku",             en: "Book Title" },
       bookTitlePh: { id: "Judul lengkap buku",     en: "Full book title" },
       author:      { id: "Penulis",                en: "Author" },

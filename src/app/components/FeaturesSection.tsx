@@ -16,12 +16,12 @@ export function FeaturesSection({ darkMode: dm }: FeaturesSectionProps) {
   const lc     = dm ? "rgba(147,197,253,0.8)" : "#0A1172";
 
   const features = [
-    { icon: Monitor,     color: "#00D4AC", badge: "WCAG 2.1 AA", item: T.features.items.reader },
-    { icon: Keyboard,    color: "#3B5BDB", badge: "Aksesibel",   item: T.features.items.keyboard },
-    { icon: Eye,         color: "#F59E0B", badge: "Kontras 4.5:1", item: T.features.items.contrast },
-    { icon: Maximize2,   color: "#87C4E8", badge: "Reflow 200%", item: T.features.items.responsive },
-    { icon: BookOpen,    color: "#0D7070", badge: "Standardized", item: T.features.items.formats },
-    { icon: ShieldCheck, color: "#BE185D", badge: "PLD UB Certified", item: T.features.items.pld },
+    { icon: Monitor,     color: "#00D4AC", badgeKey: T.features.badges.wcagBadge, item: T.features.items.reader },
+    { icon: Keyboard,    color: "#3B5BDB", badgeKey: T.features.badges.accessible, item: T.features.items.keyboard },
+    { icon: Eye,         color: "#F59E0B", badgeKey: T.features.badges.contrast, item: T.features.items.contrast },
+    { icon: Maximize2,   color: "#87C4E8", badgeKey: T.features.badges.reflow, item: T.features.items.responsive },
+    { icon: BookOpen,    color: "#0D7070", badgeKey: T.features.badges.standardized, item: T.features.items.formats },
+    { icon: ShieldCheck, color: "#BE185D", badgeKey: T.features.badges.pldCertified, item: T.features.items.pld },
   ];
 
   return (
@@ -40,11 +40,12 @@ export function FeaturesSection({ darkMode: dm }: FeaturesSectionProps) {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {features.map((feat, i) => {
             const IconComp = feat.icon;
+            const badgeText = t(feat.badgeKey);
             return (
               <div key={i} className="relative rounded-2xl p-6 transition-all hover:-translate-y-1 hover:shadow-lg" style={{ backgroundColor: card, border: `1px solid ${border}` }}>
-                {feat.badge && (
-                  <span className="absolute top-4 right-4 px-2 py-0.5 rounded-full" style={{ backgroundColor: feat.badge === "WCAG 2.1 AA" ? "#DCFCE7" : `${feat.color}18`, color: feat.badge === "WCAG 2.1 AA" ? "#166534" : feat.color, fontSize: "0.7rem", fontWeight: 600 }}>
-                    {feat.badge}
+                {badgeText && (
+                  <span className="absolute top-4 right-4 px-2 py-0.5 rounded-full" style={{ backgroundColor: badgeText === "WCAG 2.1 AA" ? "#DCFCE7" : `${feat.color}18`, color: badgeText === "WCAG 2.1 AA" ? "#166534" : feat.color, fontSize: "0.7rem", fontWeight: 600 }}>
+                    {badgeText}
                   </span>
                 )}
                 <div className="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style={{ backgroundColor: `${feat.color}15` }}>

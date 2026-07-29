@@ -295,7 +295,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                         >
                           <BookPlus className="w-4 h-4" />
-                          Jelajahi Koleksi
+                          {t(T.nav.viewCatalog)}
                         </button>
 
                         {(role === "volunteer" || role === "admin") && (
@@ -307,7 +307,7 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                             onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                           >
                             <BookPlus className="w-4 h-4" />
-                            Tambah Buku
+                            {t(T.nav.addBook)}
                           </button>
                         )}
 

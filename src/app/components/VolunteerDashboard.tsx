@@ -250,7 +250,7 @@ export function VolunteerDashboard({ darkMode: dm, user, onNavigate }: Volunteer
                 {/* ── File Upload ── */}
                 <div>
                   <label style={{ fontSize: "0.8rem", fontWeight: 700, color: muted, display: "block", marginBottom: "0.5rem", textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                    File Buku (.epub / .txt / .pdf) <span style={{ color: "#EF4444" }}>*</span>
+                    {t(T.volunteer.form.fileLabel)} <span style={{ color: "#EF4444" }}>*</span>
                   </label>
                   <FileUploadForm
                     darkMode={dm}
