@@ -19,6 +19,7 @@ export const t = {
     darkMode:     { id: "Mode gelap",   en: "Dark mode" },
     lightMode:    { id: "Mode terang",  en: "Light mode" },
     skipToMain:   { id: "Lewati ke konten utama", en: "Skip to main content" },
+    myProfile:    { id: "Profil Saya",  en: "My Profile" },
   },
 
   // ── Roles ────────────────────────────────────────────────
@@ -260,6 +261,40 @@ export const t = {
     submittingBtn:    { id: "Memproses...", en: "Processing..." },
     submitBtn:        { id: "Ubah Kata Sandi", en: "Update Password" },
     backBtn:          { id: "Kembali", en: "Back" },
+  },
+
+  // ── Profile Settings ──────────────────────────────────────
+  profile: {
+    modalTitle:        { id: "Pengaturan Profil Saya",   en: "My Profile Settings" },
+    tabInfo:           { id: "Informasi Profil",        en: "Profile Info" },
+    tabSecurity:       { id: "Keamanan & Kata Sandi",   en: "Security & Password" },
+    avatarLabel:       { id: "Foto Profil / Avatar",    en: "Profile Picture / Avatar" },
+    avatarUploadBtn:   { id: "Pilih Foto Baru",         en: "Upload New Photo" },
+    avatarUrlPh:       { id: "https://... (URL foto)",  en: "https://... (photo URL)" },
+    nameLabel:         { id: "Nama Lengkap",            en: "Full Name" },
+    namePh:            { id: "Masukkan nama lengkap",   en: "Enter full name" },
+    nimLabel:          { id: "NIM / ID Mahasiswa",      en: "NIM / Student ID" },
+    nimPh:             { id: "Contoh: 215150201111001", en: "e.g. 215150201111001" },
+    emailLabel:        { id: "Alamat Email UB",         en: "UB Email Address" },
+    roleLabel:         { id: "Peran Akun",              en: "Account Role" },
+    facultyLabel:      { id: "Fakultas",                en: "Faculty" },
+    disabilityLabel:   { id: "Disabilitas Cetak",       en: "Print Disability Category" },
+    disabilityPh:      { id: "Contoh: Tunanetra / Low Vision / Disleksia", en: "e.g. Blindness / Low Vision / Dyslexia" },
+    saveBtn:           { id: "Simpan Perubahan",        en: "Save Changes" },
+    savingBtn:         { id: "Menyimpan...",            en: "Saving..." },
+    saveSuccess:       { id: "Profil Anda berhasil diperbarui!", en: "Your profile has been updated!" },
+    currentPassLabel:  { id: "Kata Sandi Saat Ini",      en: "Current Password" },
+    currentPassPh:     { id: "Masukkan kata sandi saat ini", en: "Enter current password" },
+    newPassLabel:      { id: "Kata Sandi Baru",         en: "New Password" },
+    newPassPh:         { id: "Minimal 8 karakter",      en: "Minimum 8 characters" },
+    confirmPassLabel:  { id: "Konfirmasi Kata Sandi Baru", en: "Confirm New Password" },
+    confirmPassPh:     { id: "Ulangi kata sandi baru",  en: "Re-enter new password" },
+    updatePassBtn:     { id: "Ubah Kata Sandi",         en: "Update Password" },
+    updatingPassBtn:   { id: "Mengubah...",             en: "Updating..." },
+    passSuccess:       { id: "Kata sandi Anda berhasil diperbarui!", en: "Your password has been updated!" },
+    currentPassErr:    { id: "Kata sandi saat ini salah. Mohon periksa kembali.", en: "Current password is incorrect. Please check again." },
+    passMinErr:        { id: "Kata sandi baru minimal 8 karakter.", en: "New password must be at least 8 characters." },
+    passMismatchErr:   { id: "Konfirmasi kata sandi baru tidak cocok.", en: "New password confirmation does not match." },
   },
 
   // ── Register ──────────────────────────────────────────────

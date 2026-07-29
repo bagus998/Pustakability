@@ -18,6 +18,7 @@ import { EbookReader } from "./components/EbookReader";
 import { AdminDashboard } from "./components/AdminDashboard";
 import { VolunteerDashboard } from "./components/VolunteerDashboard";
 import { LegalModal, type LegalTab } from "./components/LegalModal";
+import { ProfileModal } from "./components/ProfileModal";
 
 import type { AppUser } from "./components/EditUserModal";
 import { allBooks } from "./data/books";
@@ -130,6 +131,7 @@ function AppInner() {
   });
   const [darkMode, setDarkMode] = useState(false);
   const [legalTab, setLegalTab] = useState<LegalTab | null>(null);
+  const [profileOpen, setProfileOpen] = useState(false);
 
   const [selectedBookId, setSelectedBookId] = useState<string | null>(() => {
     return getInitialUrlState().bookId;
@@ -366,6 +368,7 @@ function AppInner() {
           user={user}
           role={role}
           onLogout={logout}
+          onOpenProfile={() => setProfileOpen(true)}
         />
       )}
 
@@ -490,6 +493,29 @@ function AppInner() {
           initialTab={legalTab}
           darkMode={dm}
           onClose={() => setLegalTab(null)}
+        />
+      )}
+
+      {/* User Profile Modal */}
+      {profileOpen && user && (
+        <ProfileModal
+          user={users.find((u) => u.email.toLowerCase() === user.email.toLowerCase()) || {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            faculty: "Teknik",
+            status: "active",
+            joined: "2024-01-01",
+          }}
+          darkMode={dm}
+          onClose={() => setProfileOpen(false)}
+          onUpdateUser={(id, updates) => {
+            updateUser(id, updates);
+            if (user && updates.name) {
+              setUser((prev) => (prev ? { ...prev, name: updates.name! } : null));
+            }
+          }}
         />
       )}
     </div>

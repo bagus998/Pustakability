@@ -11,14 +11,7 @@ const HEADERS = {
   Prefer: "resolution=merge-duplicates",
 };
 
-const DEFAULT_USERS: AppUser[] = [
-  { id: "1", name: "Administrator", email: "admin@ub.ac.id", password: "Admin123", role: "admin", faculty: "Rektorat", status: "active", joined: "2024-01-01" },
-  { id: "2", name: "Siti Rahayu", email: "mahasiswa@ub.ac.id", password: "User123", role: "user", faculty: "MIPA", status: "active", joined: "2024-03-10" },
-  { id: "3", name: "Budi Santoso", email: "relawan@ub.ac.id", password: "Vol123", role: "volunteer", faculty: "Teknik", status: "active", joined: "2024-01-20" },
-  { id: "4", name: "Ahmad Fauzan", email: "ahmad@student.ub.ac.id", password: "User123", role: "user", faculty: "Hukum", status: "active", joined: "2024-02-15" },
-  { id: "5", name: "Rizky Pratama", email: "rizky@student.ub.ac.id", password: "User123", role: "user", faculty: "Teknik", status: "pending", joined: "2024-04-01" },
-  { id: "6", name: "Dewi Lestari", email: "dewi@student.ub.ac.id", password: "Vol123", role: "volunteer", faculty: "Ilmu Budaya", status: "active", joined: "2024-03-25" },
-];
+const DEFAULT_USERS: AppUser[] = [];
 
 async function request<T>(
   path: string,
@@ -54,7 +47,7 @@ export async function apiFetchUsers(): Promise<AppUser[]> {
           id: u.id || String(Date.now()),
           name: u.name || "User",
           email: u.email,
-          password: u.password || "User123",
+          password: u.password || "",
           role: u.role || "user",
           faculty: u.faculty || "Teknik",
           status: u.status || "pending",
@@ -200,7 +193,6 @@ export async function apiRegisterUser(userData: {
       body: JSON.stringify({
         name: newUser.name,
         email: newUser.email,
-        password: newUser.password,
         role: newUser.role,
         faculty: newUser.faculty,
         status: newUser.status,
@@ -435,5 +427,57 @@ export async function apiResetPassword(
     return { success: true };
   } catch {
     return { success: true };
+  }
+}
+
+export async function apiChangePassword(
+  email: string,
+  currentPassword: string,
+  newPassword: string
+): Promise<{ success: boolean; error?: string }> {
+  const cleanEmail = email.trim().toLowerCase();
+
+  // 1. Verify current password against Supabase Auth password grant
+  try {
+    const authRes = await fetch(`https://${projectId}.supabase.co/auth/v1/token?grant_type=password`, {
+      method: "POST",
+      headers: {
+        apikey: publicAnonKey,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email: cleanEmail, password: currentPassword }),
+    });
+
+    if (!authRes.ok) {
+      return { success: false, error: "currentPassErr" };
+    }
+
+    const authData = await authRes.json();
+    const accessToken = authData?.access_token;
+
+    if (!accessToken) {
+      return { success: false, error: "currentPassErr" };
+    }
+
+    // 2. Update to new password using authenticated session access_token
+    const updateRes = await fetch(`https://${projectId}.supabase.co/auth/v1/user`, {
+      method: "PUT",
+      headers: {
+        apikey: publicAnonKey,
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password: newPassword }),
+    });
+
+    if (updateRes.ok) {
+      return { success: true };
+    } else {
+      const errText = await updateRes.text();
+      return { success: false, error: errText || "Gagal memperbarui kata sandi." };
+    }
+  } catch (e) {
+    console.warn("Change password error:", e);
+    return { success: false, error: "Gagal memperbarui kata sandi." };
   }
 }

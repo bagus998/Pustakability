@@ -9,6 +9,10 @@ export interface AppUser {
   faculty: string;
   status: "active" | "pending" | "suspended";
   joined: string;
+  nim?: string;
+  disability?: string;
+  avatarUrl?: string;
+  password?: string;
 }
 
 interface EditUserModalProps {

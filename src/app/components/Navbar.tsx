@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Menu, X, Moon, Sun, ChevronDown, LogOut, Shield, BookPlus } from "lucide-react";
+import { Search, Menu, X, Moon, Sun, ChevronDown, LogOut, Shield, BookPlus, User } from "lucide-react";
 import type { AuthUser, UserRole, Page } from "../App";
 import logoImg from "../../imports/Logo_Pustakability_square-01.png";
 import { useLanguage } from "../i18n/LanguageContext";
@@ -14,6 +14,7 @@ interface NavbarProps {
   user: AuthUser | null;
   role: UserRole;
   onLogout: () => void;
+  onOpenProfile?: () => void;
 }
 
 const languages = [
@@ -21,7 +22,7 @@ const languages = [
   { code: "en", label: "English",   flag: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Flag_of_the_United_States.svg/500px-Flag_of_the_United_States.svg.png", short: "EN" },
 ];
 
-export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle, user, role, onLogout }: NavbarProps) {
+export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle, user, role, onLogout, onOpenProfile }: NavbarProps) {
   const [mobileOpen, setMobileOpen]   = useState(false);
   const [searchOpen, setSearchOpen]   = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -321,6 +322,19 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                           >
                             <Shield className="w-4 h-4" />
                             Admin Dashboard
+                          </button>
+                        )}
+
+                        {onOpenProfile && (
+                          <button
+                            onClick={() => { setUserMenuOpen(false); onOpenProfile(); }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors"
+                            style={{ color: dm ? "#CBD5E1" : "#374151", fontSize: "0.875rem" }}
+                            onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = dm ? "rgba(255,255,255,0.04)" : "#F9FAFB")}
+                            onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+                          >
+                            <User className="w-4 h-4 text-[#3B5BDB]" />
+                            {t(T.nav.myProfile)}
                           </button>
                         )}
 
