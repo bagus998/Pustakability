@@ -13,7 +13,7 @@
 ## ✨ Key Features
 
 - **♿ WCAG 2.1 Level AA Accessibility**:
-  - **Screen Reader Native**: Semantic HTML5 tags and complete ARIA landmarks optimized for NVDA, JAWS, VoiceOver, and TalkBack.
+  - **Screen Reader Optimized**: Semantic HTML5 tags and complete ARIA landmarks optimized for NVDA, JAWS, VoiceOver, and TalkBack.
   - **Color Contrast & Dark Mode**: High contrast ratios (4.5:1 minimum) with light and dark mode toggles.
   - **200% Text Zoom Reflow**: Responsive layout adapts to 200% text enlargement without clipping content or causing horizontal scroll.
   - **Keyboard Navigation**: 100% operable via keyboard with visible focus rings and skip-to-content links (`#main-content`, `#book-content`).
@@ -24,7 +24,7 @@
 - **📖 Integrated Accessible E-Book Reader**:
   - Supports **EPUB**, **TXT**, and **PDF** formats with instant browser preview.
   - Optimized for external screen readers (NVDA, JAWS, VoiceOver, TalkBack) with structured text.
-  - Custom typography controls (Font size adjustment, line height, font family selection, and theme switching).
+  - Custom typography controls (font size adjustment, line height, font family selection, and theme switching).
   - Interactive table of contents and bookmarking system.
 
 - **👥 Role-Based Access Control (RBAC)**:
@@ -32,10 +32,15 @@
   - **Volunteer**: Upload new accessible e-books via drag-and-drop file interface (`.epub`, `.txt`, `.pdf`) and monitor submission statuses.
   - **Admin**: Full administrative dashboard to manage user accounts (approve, suspend, edit, delete), manage book collections, and validate volunteer submissions.
 
+- **👤 User Profile Management**:
+  - View and edit personal profile information (name, NIM / Student ID, faculty, disability category).
+  - Upload or change profile picture / avatar.
+  - Change account password securely (requires current password verification before setting a new one, minimum 8 characters).
+
 - **⚡ Supabase Integration & Authentication**:
-  - User authentication with email/password and Supabase Auth.
+  - User authentication with email/password via Supabase Auth (`auth.users` with bcrypt-encrypted passwords).
   - Magic Link email password recovery flow using secure URL tokens (`PUT /auth/v1/user`).
-  - PostgreSQL database persistence (`profiles`, `books`, `kv_store`) with offline fallback support.
+  - PostgreSQL database persistence (`profiles`, `kv_store_d4405fa6`) with Row-Level Security (RLS) enabled.
 
 ---
 
@@ -48,7 +53,8 @@
 | **Language** | [TypeScript](https://www.typescriptlang.org/) |
 | **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) & Vanilla CSS |
 | **Icons** | [Lucide React](https://lucide.dev/) |
-| **Database & Auth** | [Supabase](https://supabase.com/) (PostgreSQL + Auth + REST API) |
+| **UI Primitives** | [Radix UI](https://www.radix-ui.com/) |
+| **Database & Auth** | [Supabase](https://supabase.com/) (PostgreSQL + Auth + REST API + Edge Functions) |
 | **Deployment** | [Vercel](https://vercel.com/) / Static Web Hosting |
 
 ---
@@ -58,7 +64,14 @@
 Before running the application, create a `.env` file in the root directory based on `.env.example`:
 
 ```bash
+# Linux / macOS
 cp .env.example .env
+
+# Windows (Command Prompt)
+copy .env.example .env
+
+# Windows (PowerShell)
+Copy-Item .env.example .env
 ```
 
 Define your Supabase credentials in `.env`:
@@ -68,6 +81,8 @@ Define your Supabase credentials in `.env`:
 VITE_SUPABASE_PROJECT_ID=your_supabase_project_id
 VITE_SUPABASE_ANON_KEY=your_supabase_public_anon_key
 ```
+
+> **Note:** Never commit your `.env` file to version control. The `.gitignore` already excludes `.env` and `.env.*` files.
 
 ---
 
@@ -90,7 +105,11 @@ cd Pustakabillity
 npm install
 ```
 
-### 3. Start Development Server
+### 3. Configure Environment Variables
+
+Create your `.env` file with your Supabase project credentials (see [Environment Configuration](#️-environment-configuration) above).
+
+### 4. Start Development Server
 
 ```bash
 npm run dev
@@ -98,7 +117,7 @@ npm run dev
 
 The application will be available at `http://localhost:5173`.
 
-### 4. Build for Production
+### 5. Build for Production
 
 To create an optimized production build:
 
@@ -114,32 +133,60 @@ The output files will be generated in the `dist/` directory.
 
 ```text
 Pustakabillity/
-├── public/                  # Public static assets
+├── public/                    # Public static assets (favicon, images)
 ├── src/
 │   ├── app/
-│   │   ├── api/             # Supabase API clients (books.ts, users.ts, supabase.ts)
-│   │   ├── components/      # UI Components & Page Views
+│   │   ├── api/               # Supabase API clients
+│   │   │   ├── books.ts       #   Book CRUD, upload, approve/reject
+│   │   │   └── users.ts       #   Auth, registration, profile, password change
+│   │   ├── components/        # UI Components & Page Views
 │   │   │   ├── AdminDashboard.tsx
+│   │   │   ├── CatalogPage.tsx
 │   │   │   ├── EbookReader.tsx
 │   │   │   ├── FeaturesSection.tsx
 │   │   │   ├── ForgotPasswordModal.tsx
 │   │   │   ├── LoginPage.tsx
 │   │   │   ├── Navbar.tsx
+│   │   │   ├── ProfileModal.tsx
 │   │   │   ├── RegisterPage.tsx
 │   │   │   ├── VolunteerDashboard.tsx
 │   │   │   └── ...
-│   │   ├── contexts/        # React Contexts (ToastContext)
-│   │   ├── i18n/            # Internationalization (LanguageContext, translations.ts)
-│   │   ├── types/           # TypeScript interfaces and data models
-│   │   └── App.tsx          # Main Application Entrypoint & Navigation Router
-│   ├── main.tsx             # Application DOM Root
-│   └── index.css            # Global CSS Styles & Accessibility Utilities
-├── supabase/                # Supabase Edge Functions & Config
-├── .env.example             # Environment Variable Template
-├── vercel.json              # Vercel SPA Routing Configuration
-├── vite.config.ts           # Vite Build Configuration
-└── README.md                # Project Documentation
+│   │   ├── contexts/          # React Contexts
+│   │   │   ├── BookContext.tsx #   Global book state management
+│   │   │   └── ToastContext.tsx #  Toast notification system
+│   │   ├── data/              # Local fallback data
+│   │   │   └── books.ts       #   Default book catalog entries
+│   │   ├── i18n/              # Internationalization
+│   │   │   ├── LanguageContext.tsx
+│   │   │   └── translations.ts #  All ID/EN translation dictionaries
+│   │   └── App.tsx            # Main Application Entrypoint & Navigation Router
+│   ├── main.tsx               # Application DOM Root
+│   └── index.css              # Global CSS Styles & Accessibility Utilities
+├── supabase/                  # Supabase Edge Functions & Config
+│   └── functions/server/
+│       ├── index.tsx          #   Hono API server (books, users, auth endpoints)
+│       └── kv_store.tsx       #   Key-value store interface for kv_store_d4405fa6
+├── utils/
+│   └── supabase/
+│       └── info.tsx           # Supabase project config (reads from env vars)
+├── .env.example               # Environment Variable Template
+├── vercel.json                # Vercel SPA Routing Configuration
+├── vite.config.ts             # Vite Build Configuration
+└── README.md                  # Project Documentation
 ```
+
+---
+
+## 🗄️ Database Schema
+
+The application uses two active Supabase tables (with RLS enabled):
+
+| Table | Purpose |
+| :--- | :--- |
+| `public.profiles` | User account metadata (name, email, role, faculty, status, joined date) linked to `auth.users` |
+| `public.kv_store_d4405fa6` | Key-value store for books, submissions, and application state (JSON documents) |
+
+User authentication credentials are managed securely in Supabase's built-in `auth.users` table with bcrypt-encrypted passwords.
 
 ---
 
@@ -157,7 +204,11 @@ This repository includes a `vercel.json` file pre-configured for Single Page App
 }
 ```
 
-Simply connect your repository to [Vercel](https://vercel.com/) and configure the `VITE_SUPABASE_PROJECT_ID` and `VITE_SUPABASE_ANON_KEY` environment variables.
+1. Connect your repository to [Vercel](https://vercel.com/).
+2. Add the following environment variables in Vercel project settings:
+   - `VITE_SUPABASE_PROJECT_ID`
+   - `VITE_SUPABASE_ANON_KEY`
+3. Deploy. Vercel will automatically run `npm run build` and serve from `dist/`.
 
 ---
 
