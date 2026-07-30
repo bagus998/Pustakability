@@ -26,7 +26,7 @@ const faculties = [
   "Hukum", "Ilmu Administrasi", "Pertanian", "Teknik", "Kedokteran",
   "Perikanan & Ilmu Kelautan", "Peternakan", "Ilmu Sosial & Ilmu Politik",
   "Ilmu Budaya", "MIPA", "Teknologi Pertanian", "Ekonomi & Bisnis",
-  "Ilmu Komputer", "Ilmu Kesehatan", "Vokasi",
+  "Ilmu Komputer", "Ilmu Kesehatan", "Vokasi", "Rektorat",
 ];
 
 const roleBadge: Record<string, { bg: string; text: string }> = {
@@ -83,16 +83,16 @@ export function EditUserModal({ user, darkMode: dm, onSave, onClose }: EditUserM
 
   const handleSave = async () => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 400));
     onSave(user.id, form);
     setSaving(false);
     setSaved(true);
-    setTimeout(onClose, 700);
+    setTimeout(onClose, 500);
   };
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 animate-in fade-in"
       style={{ backgroundColor: overlay, backdropFilter: "blur(4px)" }}
       onClick={(e) => e.target === e.currentTarget && onClose()}
       aria-modal="true"
@@ -100,11 +100,11 @@ export function EditUserModal({ user, darkMode: dm, onSave, onClose }: EditUserM
       aria-labelledby="edit-user-title"
     >
       <div
-        className="w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden"
-        style={{ backgroundColor: card, border: `1px solid ${border}`, maxHeight: "90vh" }}
+        className="w-full max-w-lg rounded-2xl shadow-2xl flex flex-col overflow-hidden my-auto"
+        style={{ backgroundColor: card, border: `1px solid ${border}`, maxHeight: "88vh" }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 flex-shrink-0" style={{ borderBottom: `1px solid ${border}` }}>
+        <div className="flex items-center justify-between px-5 sm:px-6 py-4 flex-shrink-0" style={{ borderBottom: `1px solid ${border}` }}>
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "linear-gradient(135deg, #0A1172, #3B5BDB)" }}>
               <UserCog className="w-5 h-5 text-white" />
@@ -127,18 +127,26 @@ export function EditUserModal({ user, darkMode: dm, onSave, onClose }: EditUserM
         </div>
 
         {/* Avatar preview row */}
-        <div className="px-6 py-4 flex items-center gap-4 flex-shrink-0" style={{ backgroundColor: sectionBg, borderBottom: `1px solid ${border}` }}>
-          <div
-            className="w-14 h-14 rounded-2xl flex items-center justify-center text-white flex-shrink-0"
-            style={{
-              backgroundColor: roleBadge[form.role]?.text ?? "#0A1172",
-              fontSize: "1.35rem",
-              fontWeight: 700,
-            }}
-            aria-hidden="true"
-          >
-            {form.name.charAt(0).toUpperCase()}
-          </div>
+        <div className="px-5 sm:px-6 py-4 flex items-center gap-4 flex-shrink-0" style={{ backgroundColor: sectionBg, borderBottom: `1px solid ${border}` }}>
+          {form.avatarUrl ? (
+            <img
+              src={form.avatarUrl}
+              alt={form.name}
+              className="w-14 h-14 rounded-2xl object-cover border-2 border-[#3B5BDB] flex-shrink-0 shadow-md"
+            />
+          ) : (
+            <div
+              className="w-14 h-14 rounded-2xl flex items-center justify-center text-white flex-shrink-0 shadow-md"
+              style={{
+                backgroundColor: roleBadge[form.role]?.text ?? "#0A1172",
+                fontSize: "1.35rem",
+                fontWeight: 700,
+              }}
+              aria-hidden="true"
+            >
+              {form.name ? form.name.charAt(0).toUpperCase() : "U"}
+            </div>
+          )}
           <div className="flex-1 min-w-0">
             <div style={{ fontSize: "1rem", fontWeight: 600, color: text }} className="truncate">{form.name || "—"}</div>
             <div style={{ fontSize: "0.8rem", color: muted }} className="truncate">{form.email || "—"}</div>
@@ -153,9 +161,9 @@ export function EditUserModal({ user, darkMode: dm, onSave, onClose }: EditUserM
           </div>
         </div>
 
-        {/* Form body */}
-        <div className="overflow-y-auto flex-1 px-6 py-5">
-          <div className="grid sm:grid-cols-2 gap-5">
+        {/* Form body - Scrollable */}
+        <div className="overflow-y-auto flex-1 px-5 sm:px-6 py-5 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Name */}
             <div className="sm:col-span-2">
               <label htmlFor="u-name" style={labelStyle}>Nama Lengkap</label>
@@ -179,6 +187,32 @@ export function EditUserModal({ user, darkMode: dm, onSave, onClose }: EditUserM
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
                 style={inputStyle}
                 required
+              />
+            </div>
+
+            {/* NIM */}
+            <div>
+              <label htmlFor="u-nim" style={labelStyle}>NIM / ID Mahasiswa</label>
+              <input
+                id="u-nim"
+                type="text"
+                value={form.nim || ""}
+                onChange={(e) => setForm({ ...form, nim: e.target.value })}
+                placeholder="215150201111001"
+                style={inputStyle}
+              />
+            </div>
+
+            {/* Disability Category */}
+            <div>
+              <label htmlFor="u-disability" style={labelStyle}>Disabilitas Cetak</label>
+              <input
+                id="u-disability"
+                type="text"
+                value={form.disability || ""}
+                onChange={(e) => setForm({ ...form, disability: e.target.value })}
+                placeholder="Tunanetra / Low Vision / Disleksia"
+                style={inputStyle}
               />
             </div>
 
@@ -250,7 +284,7 @@ export function EditUserModal({ user, darkMode: dm, onSave, onClose }: EditUserM
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 flex-shrink-0" style={{ borderTop: `1px solid ${border}` }}>
+        <div className="flex items-center justify-end gap-3 px-5 sm:px-6 py-4 flex-shrink-0 bg-opacity-50" style={{ borderTop: `1px solid ${border}`, backgroundColor: sectionBg }}>
           <button
             onClick={onClose}
             className="px-5 py-2.5 rounded-xl transition-colors"

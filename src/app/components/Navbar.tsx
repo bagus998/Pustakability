@@ -246,13 +246,21 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                   aria-expanded={userMenuOpen}
                   aria-haspopup="true"
                 >
-                  <div
-                    className="w-7 h-7 rounded-full flex items-center justify-center text-white flex-shrink-0"
-                    style={{ backgroundColor: roleBadgeColor[role], fontSize: "0.75rem", fontWeight: 700 }}
-                    aria-hidden="true"
-                  >
-                    {user.name.charAt(0)}
-                  </div>
+                  {user.avatarUrl ? (
+                    <img
+                      src={user.avatarUrl}
+                      alt={user.name}
+                      className="w-7 h-7 rounded-full object-cover border border-white/30 flex-shrink-0"
+                    />
+                  ) : (
+                    <div
+                      className="w-7 h-7 rounded-full flex items-center justify-center text-white flex-shrink-0"
+                      style={{ backgroundColor: roleBadgeColor[role], fontSize: "0.75rem", fontWeight: 700 }}
+                      aria-hidden="true"
+                    >
+                      {user.name.charAt(0)}
+                    </div>
+                  )}
                   <div className="hidden sm:flex flex-col text-left">
                     <span className="text-white leading-tight" style={{ fontSize: "0.8rem", fontWeight: 500 }}>
                       {user.name.split(" ")[0]}
@@ -268,23 +276,39 @@ export function Navbar({ currentPage, onNavigate, darkMode: dm, onDarkModeToggle
                   <>
                     <div className="fixed inset-0 z-10" onClick={() => setUserMenuOpen(false)} />
                     <div
-                      className="absolute right-0 top-full mt-2 w-52 rounded-2xl shadow-xl z-20 py-1 overflow-hidden"
+                      className="absolute right-0 top-full mt-2 w-56 rounded-2xl shadow-xl z-20 py-1 overflow-hidden"
                       style={{
                         backgroundColor: dm ? "#161B2E" : "white",
                         border: `1px solid ${dm ? "#1E2D4F" : "#E5E7EB"}`,
                       }}
                     >
-                      <div className="px-4 py-3" style={{ borderBottom: `1px solid ${dm ? "#1E2D4F" : "#F3F4F6"}` }}>
-                        <div style={{ fontSize: "0.875rem", fontWeight: 600, color: dm ? "#F1F5F9" : "#0F1B35" }}>
-                          {user.name}
+                      <div className="px-4 py-3 flex items-center gap-3" style={{ borderBottom: `1px solid ${dm ? "#1E2D4F" : "#F3F4F6"}` }}>
+                        {user.avatarUrl ? (
+                          <img
+                            src={user.avatarUrl}
+                            alt={user.name}
+                            className="w-9 h-9 rounded-full object-cover border border-[#3B5BDB]/30 flex-shrink-0"
+                          />
+                        ) : (
+                          <div
+                            className="w-9 h-9 rounded-full flex items-center justify-center text-white flex-shrink-0"
+                            style={{ backgroundColor: roleBadgeColor[role], fontSize: "0.85rem", fontWeight: 700 }}
+                          >
+                            {user.name.charAt(0)}
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="truncate" style={{ fontSize: "0.875rem", fontWeight: 600, color: dm ? "#F1F5F9" : "#0F1B35" }}>
+                            {user.name}
+                          </div>
+                          <div className="truncate" style={{ fontSize: "0.75rem", color: dm ? "#94A3B8" : "#6B7280" }}>{user.email}</div>
+                          <span
+                            className="inline-block mt-1 px-2 py-0.5 rounded-full"
+                            style={{ backgroundColor: `${roleBadgeColor[role]}18`, color: roleBadgeColor[role], fontSize: "0.7rem", fontWeight: 600 }}
+                          >
+                            {roleLabel[role]}
+                          </span>
                         </div>
-                        <div style={{ fontSize: "0.75rem", color: dm ? "#94A3B8" : "#6B7280" }}>{user.email}</div>
-                        <span
-                          className="inline-block mt-1 px-2 py-0.5 rounded-full"
-                          style={{ backgroundColor: `${roleBadgeColor[role]}18`, color: roleBadgeColor[role], fontSize: "0.7rem", fontWeight: 600 }}
-                        >
-                          {roleLabel[role]}
-                        </span>
                       </div>
 
                       <div className="py-1">

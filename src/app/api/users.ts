@@ -52,6 +52,9 @@ export async function apiFetchUsers(): Promise<AppUser[]> {
           faculty: u.faculty || "Teknik",
           status: u.status || "pending",
           joined: u.joined || u.created_at?.split("T")[0] || "2024-01-01",
+          nim: u.nim || "",
+          disability: u.disability || "",
+          avatarUrl: u.avatar_url || u.avatarUrl || "",
         }));
       }
     }
@@ -238,11 +241,23 @@ export async function apiUpdateUser(
   const existing = users.find((u) => u.id === id) || ({ id } as AppUser);
   const updated = { ...existing, ...updates };
 
+  // Format payload for public.profiles table (snake_case column mapping)
+  const profilePayload: any = {};
+  if (updates.name !== undefined) profilePayload.name = updates.name;
+  if (updates.email !== undefined) profilePayload.email = updates.email;
+  if (updates.role !== undefined) profilePayload.role = updates.role;
+  if (updates.faculty !== undefined) profilePayload.faculty = updates.faculty;
+  if (updates.status !== undefined) profilePayload.status = updates.status;
+  if (updates.nim !== undefined) profilePayload.nim = updates.nim;
+  if (updates.disability !== undefined) profilePayload.disability = updates.disability;
+  if (updates.avatarUrl !== undefined) profilePayload.avatar_url = updates.avatarUrl;
+
   try {
-    await fetch(`https://${projectId}.supabase.co/rest/v1/profiles?email=eq.${encodeURIComponent(updated.email)}`, {
+    const filterQuery = id ? `id=eq.${id}` : `email=eq.${encodeURIComponent(updated.email)}`;
+    await fetch(`https://${projectId}.supabase.co/rest/v1/profiles?${filterQuery}`, {
       method: "PATCH",
       headers: HEADERS,
-      body: JSON.stringify(updates),
+      body: JSON.stringify(profilePayload),
     });
   } catch (e) {
     console.warn("Profiles update notice:", e);

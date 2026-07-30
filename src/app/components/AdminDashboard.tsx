@@ -63,6 +63,48 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
 
   const users = propsUsers ?? internalUsers;
 
+  // Sorting state for Users table
+  const [userSortField, setUserSortField] = useState<keyof AppUser>("name");
+  const [userSortOrder, setUserSortOrder] = useState<"asc" | "desc">("asc");
+
+  // Sorting state for Books table
+  const [bookSortField, setBookSortField] = useState<keyof Book>("title");
+  const [bookSortOrder, setBookSortOrder] = useState<"asc" | "desc">("asc");
+
+  const toggleUserSort = (field: keyof AppUser) => {
+    if (userSortField === field) {
+      setUserSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setUserSortField(field);
+      setUserSortOrder("asc");
+    }
+  };
+
+  const toggleBookSort = (field: keyof Book) => {
+    if (bookSortField === field) {
+      setBookSortOrder((prev) => (prev === "asc" ? "desc" : "asc"));
+    } else {
+      setBookSortField(field);
+      setBookSortOrder("asc");
+    }
+  };
+
+  const sortedUsersList = [...users].sort((a, b) => {
+    const valA = a[userSortField] ?? "";
+    const valB = b[userSortField] ?? "";
+    const comp = String(valA).localeCompare(String(valB), undefined, { numeric: true, sensitivity: "base" });
+    return userSortOrder === "asc" ? comp : -comp;
+  });
+
+  const sortedBooksList = [...books].sort((a, b) => {
+    const valA = a[bookSortField] ?? "";
+    const valB = b[bookSortField] ?? "";
+    const comp = typeof valA === "number" && typeof valB === "number"
+      ? valA - valB
+      : String(valA).localeCompare(String(valB), undefined, { numeric: true, sensitivity: "base" });
+    return bookSortOrder === "asc" ? comp : -comp;
+  });
+
   const handleUpdateUser = (id: string, updates: Partial<AppUser>) => {
     if (onUpdateUser) {
       onUpdateUser(id, updates);
@@ -234,15 +276,32 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                     <thead style={{ borderBottom: `1px solid ${border}`, backgroundColor: dm ? "#0F1623" : "#F9FAFB" }}>
                       <tr>
                         {[
-                          t(T.admin.users.name), t(T.admin.users.email),
-                          t(T.admin.users.role), t(T.admin.users.faculty),
-                          t(T.admin.users.status), t(T.admin.users.joined),
-                          t(T.admin.users.action),
-                        ].map((h) => <th key={h} style={thStyle}>{h}</th>)}
+                          { key: "name" as const, label: t(T.admin.users.name) },
+                          { key: "email" as const, label: t(T.admin.users.email) },
+                          { key: "role" as const, label: t(T.admin.users.role) },
+                          { key: "faculty" as const, label: t(T.admin.users.faculty) },
+                          { key: "status" as const, label: t(T.admin.users.status) },
+                          { key: "joined" as const, label: t(T.admin.users.joined) },
+                        ].map((col) => (
+                          <th
+                            key={col.key}
+                            style={{ ...thStyle, cursor: "pointer", userSelect: "none" }}
+                            onClick={() => toggleUserSort(col.key)}
+                            title={`Urutkan berdasarkan ${col.label}`}
+                          >
+                            <div className="flex items-center gap-1.5">
+                              <span>{col.label}</span>
+                              <span style={{ fontSize: "0.68rem", opacity: userSortField === col.key ? 1 : 0.4 }}>
+                                {userSortField === col.key ? (userSortOrder === "asc" ? "▲" : "▼") : "↕"}
+                              </span>
+                            </div>
+                          </th>
+                        ))}
+                        <th style={thStyle}>{t(T.admin.users.action)}</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {users.map((u, i) => (
+                      {sortedUsersList.map((u, i) => (
                         <tr
                           key={u.id}
                           style={{ borderBottom: i < users.length - 1 ? `1px solid ${border}` : "none" }}
@@ -251,9 +310,17 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                         >
                           <td style={tdStyle}>
                             <div className="flex items-center gap-2.5">
-                              <div className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: roleColors[u.role] ?? "#0A1172", fontSize: "0.75rem", fontWeight: 700 }} aria-hidden="true">
-                                {u.name.charAt(0)}
-                              </div>
+                              {u.avatarUrl ? (
+                                <img
+                                  src={u.avatarUrl}
+                                  alt={u.name}
+                                  className="w-8 h-8 rounded-full object-cover border border-[#3B5BDB]/20 flex-shrink-0"
+                                />
+                              ) : (
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: roleColors[u.role] ?? "#0A1172", fontSize: "0.75rem", fontWeight: 700 }} aria-hidden="true">
+                                  {u.name.charAt(0)}
+                                </div>
+                              )}
                               <span style={{ fontWeight: 500 }}>{u.name}</span>
                             </div>
                           </td>
@@ -338,14 +405,32 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                       <thead style={{ borderBottom: `1px solid ${border}`, backgroundColor: dm ? "#0F1623" : "#F9FAFB" }}>
                         <tr>
                           {[
-                            t(T.admin.books.bookTitle), t(T.admin.books.author),
-                            t(T.admin.books.category),  t(T.admin.books.format),
-                            "Bab", t(T.admin.books.action),
-                          ].map((h) => <th key={h} style={thStyle}>{h}</th>)}
+                            { key: "title" as const, label: t(T.admin.books.bookTitle) },
+                            { key: "author" as const, label: t(T.admin.books.author) },
+                            { key: "category" as const, label: t(T.admin.books.category) },
+                            { key: "year" as const, label: "Tahun" },
+                          ].map((col) => (
+                            <th
+                              key={col.key}
+                              style={{ ...thStyle, cursor: "pointer", userSelect: "none" }}
+                              onClick={() => toggleBookSort(col.key)}
+                              title={`Urutkan berdasarkan ${col.label}`}
+                            >
+                              <div className="flex items-center gap-1.5">
+                                <span>{col.label}</span>
+                                <span style={{ fontSize: "0.68rem", opacity: bookSortField === col.key ? 1 : 0.4 }}>
+                                  {bookSortField === col.key ? (bookSortOrder === "asc" ? "▲" : "▼") : "↕"}
+                                </span>
+                              </div>
+                            </th>
+                          ))}
+                          <th style={thStyle}>{t(T.admin.books.format)}</th>
+                          <th style={thStyle}>Bab</th>
+                          <th style={thStyle}>{t(T.admin.books.action)}</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {books.map((b, i) => (
+                        {sortedBooksList.map((b, i) => (
                           <tr
                             key={b.id}
                             style={{ borderBottom: i < books.length - 1 ? `1px solid ${border}` : "none" }}

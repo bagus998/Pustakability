@@ -23,12 +23,12 @@ const faculties = [
 
 async function uploadAvatarToStorage(userId: string, file: File): Promise<string | null> {
   const ext = file.name.split(".").pop() || "png";
-  const filePath = `avatars/${userId}.${ext}`;
+  const fileName = `${userId}-${Date.now()}.${ext}`;
 
   try {
     // Upload to Supabase Storage bucket "avatars"
     const uploadRes = await fetch(
-      `https://${projectId}.supabase.co/storage/v1/object/avatars/${filePath}`,
+      `https://${projectId}.supabase.co/storage/v1/object/avatars/${fileName}`,
       {
         method: "POST",
         headers: {
@@ -42,7 +42,7 @@ async function uploadAvatarToStorage(userId: string, file: File): Promise<string
     );
 
     if (uploadRes.ok) {
-      return `https://${projectId}.supabase.co/storage/v1/object/public/avatars/${filePath}`;
+      return `https://${projectId}.supabase.co/storage/v1/object/public/avatars/${fileName}`;
     }
 
     console.warn("Avatar upload response:", uploadRes.status, await uploadRes.text());

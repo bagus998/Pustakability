@@ -74,6 +74,28 @@ export function CatalogPage({ darkMode: dm, role, onOpenBook, onNavigate, initia
     return matchesSearch && matchesCategory && matchesFormat;
   });
 
+  const sortedBooks = [...filteredBooks].sort((a, b) => {
+    if (selectedSort === "newest") {
+      return (b.year || 0) - (a.year || 0);
+    }
+    if (selectedSort === "az") {
+      return a.title.localeCompare(b.title, undefined, { sensitivity: "base" });
+    }
+    if (selectedSort === "za") {
+      return b.title.localeCompare(a.title, undefined, { sensitivity: "base" });
+    }
+    // Relevance: if searching, items matching earlier in title rank higher
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase();
+      const aIndex = a.title.toLowerCase().indexOf(q);
+      const bIndex = b.title.toLowerCase().indexOf(q);
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+    }
+    return 0;
+  });
+
   return (
     <div className="min-h-screen pt-16" style={{ backgroundColor: bg }}>
       {/* Header */}
@@ -138,22 +160,22 @@ export function CatalogPage({ darkMode: dm, role, onOpenBook, onNavigate, initia
         {/* Results count */}
         <div className="mb-5" style={{ fontSize: "0.85rem", color: muted }}>
           {t(T.catalogPage.showing)}{" "}
-          <strong style={{ color: text }}>{filteredBooks.length}</strong>{" "}
+          <strong style={{ color: text }}>{sortedBooks.length}</strong>{" "}
           {t(T.catalogPage.collections)}
           {searchQuery && <> {t(T.catalogPage.for)} "<strong style={{ color: text }}>{searchQuery}</strong>"</>}
         </div>
 
         {/* Books */}
-        {filteredBooks.length > 0 ? (
+        {sortedBooks.length > 0 ? (
           viewMode === "grid" ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-5">
-              {filteredBooks.map((book) => (
+              {sortedBooks.map((book) => (
                 <BookCard key={book.id} book={book} darkMode={dm} role={role} onOpenBook={onOpenBook} />
               ))}
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              {filteredBooks.map((book) => (
+              {sortedBooks.map((book) => (
                 <div key={book.id} className="flex gap-4 p-4 rounded-2xl cursor-pointer active:scale-[0.98] transition-all duration-150 ease-out hover:shadow-md focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-[#3B5BDB]"
                   style={{ backgroundColor: card, border: `1px solid ${border}` }}
                   onClick={() => onOpenBook(book.id)} tabIndex={0} onKeyDown={(e) => e.key === "Enter" && onOpenBook(book.id)} role="button" aria-label={`Buka ${book.title}`}>

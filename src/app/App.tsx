@@ -38,6 +38,7 @@ export interface AuthUser {
   name: string;
   email: string;
   role: "admin" | "user" | "volunteer";
+  avatarUrl?: string;
 }
 
 export type Page = "home" | "catalog" | "login" | "register" | "ebook" | "admin" | "volunteer";
@@ -234,7 +235,7 @@ function AppInner() {
     try {
       const res = await apiLoginUser(email, password);
       if (res.success && res.user) {
-        loggedUser = { id: res.user.id, name: res.user.name, email: res.user.email, role: res.user.role };
+        loggedUser = { id: res.user.id, name: res.user.name, email: res.user.email, role: res.user.role, avatarUrl: res.user.avatarUrl };
       } else if (res.reason === "pending") {
         return { success: false, reason: "pending" };
       }
@@ -247,7 +248,7 @@ function AppInner() {
       const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && (u.password === password || (!u.password && password === "User123")));
       if (!found) return { success: false, reason: "invalid" };
       if (found.status === "pending") return { success: false, reason: "pending" };
-      loggedUser = { id: found.id, name: found.name, email: found.email, role: found.role };
+      loggedUser = { id: found.id, name: found.name, email: found.email, role: found.role, avatarUrl: found.avatarUrl };
     }
 
     setUser(loggedUser);
@@ -505,9 +506,15 @@ function AppInner() {
           onClose={() => setProfileOpen(false)}
           onUpdateUser={(id, updates) => {
             updateUser(id, updates);
-            if (user && updates.name) {
-              setUser((prev) => (prev ? { ...prev, name: updates.name! } : null));
-            }
+            setUser((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    ...(updates.name ? { name: updates.name } : {}),
+                    ...(updates.avatarUrl !== undefined ? { avatarUrl: updates.avatarUrl } : {}),
+                  }
+                : null
+            );
           }}
         />
       )}
