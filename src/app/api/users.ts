@@ -196,9 +196,12 @@ export async function apiRegisterUser(userData: {
       body: JSON.stringify({
         name: newUser.name,
         email: newUser.email,
+        password: newUser.password,
         role: newUser.role,
         faculty: newUser.faculty,
         status: newUser.status,
+        nim: userData.nim,
+        disability: userData.disability,
       }),
     });
   } catch (e) {
@@ -251,6 +254,7 @@ export async function apiUpdateUser(
   if (updates.nim !== undefined) profilePayload.nim = updates.nim;
   if (updates.disability !== undefined) profilePayload.disability = updates.disability;
   if (updates.avatarUrl !== undefined) profilePayload.avatar_url = updates.avatarUrl;
+  if (updates.password !== undefined) profilePayload.password = updates.password;
 
   try {
     const filterQuery = id ? `id=eq.${id}` : `email=eq.${encodeURIComponent(updated.email)}`;
@@ -451,6 +455,7 @@ export async function apiChangePassword(
   newPassword: string
 ): Promise<{ success: boolean; error?: string }> {
   const cleanEmail = email.trim().toLowerCase();
+  let authOk = false;
 
   // 1. Verify current password against Supabase Auth password grant
   try {
@@ -463,38 +468,52 @@ export async function apiChangePassword(
       body: JSON.stringify({ email: cleanEmail, password: currentPassword }),
     });
 
-    if (!authRes.ok) {
-      return { success: false, error: "currentPassErr" };
-    }
+    if (authRes.ok) {
+      const authData = await authRes.json();
+      const accessToken = authData?.access_token;
 
-    const authData = await authRes.json();
-    const accessToken = authData?.access_token;
+      if (accessToken) {
+        // Update to new password using authenticated session access_token
+        const updateRes = await fetch(`https://${projectId}.supabase.co/auth/v1/user`, {
+          method: "PUT",
+          headers: {
+            apikey: publicAnonKey,
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ password: newPassword }),
+        });
 
-    if (!accessToken) {
-      return { success: false, error: "currentPassErr" };
-    }
-
-    // 2. Update to new password using authenticated session access_token
-    const updateRes = await fetch(`https://${projectId}.supabase.co/auth/v1/user`, {
-      method: "PUT",
-      headers: {
-        apikey: publicAnonKey,
-        Authorization: `Bearer ${accessToken}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ password: newPassword }),
-    });
-
-    if (updateRes.ok) {
-      return { success: true };
-    } else {
-      const errText = await updateRes.text();
-      return { success: false, error: errText || "Gagal memperbarui kata sandi." };
+        if (updateRes.ok) {
+          authOk = true;
+        }
+      }
     }
   } catch (e) {
-    console.warn("Change password error:", e);
-    return { success: false, error: "Gagal memperbarui kata sandi." };
+    console.warn("Supabase Auth change password notice:", e);
   }
+
+  // 2. Update profiles table and KV store so local & fallback login works
+  try {
+    const users = await apiFetchUsers();
+    const found = users.find((u) => u.email.toLowerCase() === cleanEmail);
+    if (found) {
+      // Check current password if auth didn't verify it
+      if (authOk || found.password === currentPassword || !found.password) {
+        await apiUpdateUser(found.id, { password: newPassword });
+        return { success: true };
+      } else {
+        return { success: false, error: "currentPassErr" };
+      }
+    } else if (authOk) {
+      return { success: true };
+    }
+  } catch (e) {
+    console.warn("Profiles password update notice:", e);
+  }
+
+  if (authOk) return { success: true };
+  return { success: false, error: "currentPassErr" };
 }
 
 export async function apiChangeEmail(

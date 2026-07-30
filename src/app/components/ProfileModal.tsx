@@ -1,10 +1,10 @@
 import { useState, useRef } from "react";
-import { X, User, Lock, Upload, Save, KeyRound, AlertCircle, CheckCircle2, ShieldCheck, CreditCard, Mail } from "lucide-react";
+import { X, User, Lock, Upload, Save, KeyRound, AlertCircle, CheckCircle2, ShieldCheck, CreditCard } from "lucide-react";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
 import { AppUser } from "./EditUserModal";
 import { useToast } from "../contexts/ToastContext";
-import { apiChangePassword, apiChangeEmail } from "../api/users";
+import { apiChangePassword } from "../api/users";
 import { projectId, publicAnonKey } from "../../../utils/supabase/info";
 
 interface ProfileModalProps {
@@ -77,11 +77,7 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
   const [passError, setPassError] = useState("");
   const [updatingPass, setUpdatingPass] = useState(false);
 
-  // Email Change State
-  const [newEmail, setNewEmail] = useState("");
-  const [emailPassword, setEmailPassword] = useState("");
-  const [emailError, setEmailError] = useState("");
-  const [changingEmail, setChangingEmail] = useState(false);
+
 
   const modalBg  = dm ? "#161B2E" : "#FFFFFF";
   const border   = dm ? "#1E2D4F" : "#E5E7EB";
@@ -168,6 +164,7 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
     setUpdatingPass(false);
 
     if (res.success) {
+      await onUpdateUser(user.id, { password: newPassword });
       showToast(t(T.profile.passSuccess), "success");
       setCurrentPassword("");
       setNewPassword("");
@@ -182,32 +179,7 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
     }
   };
 
-  // Change Email
-  const handleChangeEmail = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setEmailError("");
 
-    if (!newEmail.trim() || !emailPassword) {
-      setEmailError(t(T.profile.currentPassErr));
-      return;
-    }
-
-    setChangingEmail(true);
-    const res = await apiChangeEmail(user.email, emailPassword, newEmail.trim());
-    setChangingEmail(false);
-
-    if (res.success) {
-      showToast(t(T.profile.emailChangeSuccess), "success");
-      setNewEmail("");
-      setEmailPassword("");
-    } else {
-      if (res.error === "currentPassErr") {
-        setEmailError(t(T.profile.currentPassErr));
-      } else {
-        setEmailError(t(T.profile.emailChangeErr));
-      }
-    }
-  };
 
   return (
     <div
@@ -522,70 +494,7 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
                 </button>
               </form>
 
-              {/* Divider */}
-              <div style={{ height: "1px", backgroundColor: border }} />
 
-              {/* Email Change Section */}
-              <form onSubmit={handleChangeEmail} className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <Mail className="w-4 h-4 text-[#3B5BDB]" />
-                  <h3 className="font-semibold text-sm" style={{ color: text }}>
-                    {t(T.profile.changeEmailLabel)}
-                  </h3>
-                </div>
-
-                <div>
-                  <label htmlFor="email-pass" className="block text-xs font-semibold mb-1" style={{ color: text }}>
-                    {t(T.profile.currentPassLabel)} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="email-pass"
-                    type="password"
-                    value={emailPassword}
-                    onChange={(e) => setEmailPassword(e.target.value)}
-                    placeholder={t(T.profile.currentPassPh)}
-                    required
-                    className="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-sm"
-                    style={{ backgroundColor: inputBg, border: `1.5px solid ${emailError ? "#EF4444" : border}`, color: text }}
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="new-email" className="block text-xs font-semibold mb-1" style={{ color: text }}>
-                    {t(T.profile.newEmailLabel)} <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    id="new-email"
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder={t(T.profile.newEmailPh)}
-                    required
-                    className="w-full px-4 py-2.5 rounded-xl outline-none transition-all text-sm"
-                    style={{ backgroundColor: inputBg, border: `1.5px solid ${emailError ? "#EF4444" : border}`, color: text }}
-                  />
-                </div>
-
-                {emailError && (
-                  <div className="rounded-lg p-3 flex items-start gap-2 bg-red-500/10 border border-red-500/30 text-red-500 text-xs">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                    <span>{emailError}</span>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={changingEmail}
-                  className="w-full py-3 rounded-xl font-semibold text-white active:scale-95 transition-all flex items-center justify-center gap-2"
-                  style={{
-                    background: changingEmail ? "#94A3B8" : "linear-gradient(135deg, #0D7070, #00D4AC)",
-                    cursor: changingEmail ? "not-allowed" : "pointer",
-                  }}
-                >
-                  <Mail className="w-4 h-4" />
-                  {changingEmail ? t(T.profile.changingEmailBtn) : t(T.profile.changeEmailBtn)}
-                </button>
-              </form>
             </div>
           )}
         </div>

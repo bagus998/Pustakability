@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { X, Save, UserCog } from "lucide-react";
+import { X, Save, UserCog, KeyRound, Eye, EyeOff } from "lucide-react";
 
 export interface AppUser {
   id: string;
@@ -43,6 +43,8 @@ const statusBadge: Record<string, { bg: string; text: string; label: string }> =
 
 export function EditUserModal({ user, darkMode: dm, onSave, onClose }: EditUserModalProps) {
   const [form, setForm] = useState<AppUser>({ ...user });
+  const [newPassword, setNewPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved,  setSaved]  = useState(false);
 
@@ -84,7 +86,11 @@ export function EditUserModal({ user, darkMode: dm, onSave, onClose }: EditUserM
   const handleSave = async () => {
     setSaving(true);
     await new Promise((r) => setTimeout(r, 400));
-    onSave(user.id, form);
+    const updates: Partial<AppUser> = { ...form };
+    if (newPassword.trim()) {
+      updates.password = newPassword.trim();
+    }
+    onSave(user.id, updates);
     setSaving(false);
     setSaved(true);
     setTimeout(onClose, 500);
@@ -257,6 +263,36 @@ export function EditUserModal({ user, darkMode: dm, onSave, onClose }: EditUserM
               >
                 {faculties.map((f) => <option key={f} value={f}>{f}</option>)}
               </select>
+            </div>
+
+            {/* Admin Password Reset Section */}
+            <div className="sm:col-span-2 p-4 rounded-xl border space-y-3" style={{ borderColor: border, backgroundColor: sectionBg }}>
+              <div className="flex items-center gap-2">
+                <KeyRound className="w-4 h-4 text-[#3B5BDB]" />
+                <span className="font-semibold text-xs uppercase tracking-wider" style={{ color: text }}>
+                  Reset Kata Sandi Pengguna (Admin)
+                </span>
+              </div>
+              <p style={{ fontSize: "0.78rem", color: muted }}>
+                Atur kata sandi baru untuk pengguna ini jika pengguna lupa kata sandi. Biarkan kosong jika tidak ingin mengubah kata sandi.
+              </p>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Masukkan kata sandi baru (opsional)"
+                  style={{ ...inputStyle, paddingRight: "2.5rem" }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-200 transition-colors"
+                  aria-label={showPassword ? "Sembunyikan kata sandi" : "Tampilkan kata sandi"}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4 text-gray-400" /> : <Eye className="w-4 h-4 text-gray-400" />}
+                </button>
+              </div>
             </div>
 
             {/* Warning if suspending */}

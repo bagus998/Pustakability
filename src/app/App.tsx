@@ -245,7 +245,18 @@ function AppInner() {
 
     if (!loggedUser) {
       // Fallback check against local users list
-      const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase() && (u.password === password || (!u.password && password === "User123")));
+      let currentUsers = users;
+      try {
+        const saved = localStorage.getItem("pustakability_users");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            currentUsers = parsed;
+          }
+        }
+      } catch {}
+
+      const found = currentUsers.find((u) => u.email.toLowerCase() === email.toLowerCase() && u.password === password);
       if (!found) return { success: false, reason: "invalid" };
       if (found.status === "pending") return { success: false, reason: "pending" };
       loggedUser = { id: found.id, name: found.name, email: found.email, role: found.role, avatarUrl: found.avatarUrl };
@@ -293,11 +304,33 @@ function AppInner() {
   };
 
   const updateUser = async (id: string, updates: Partial<AppUser>) => {
-    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...updates } : u)));
+    setUsers((prev) => {
+      const updated = prev.map((u) => (u.id === id ? { ...u, ...updates } : u));
+      try {
+        localStorage.setItem("pustakability_users", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
     try {
       await apiUpdateUser(id, updates);
       const fresh = await apiFetchUsers();
-      if (fresh?.length) setUsers(fresh);
+      if (fresh?.length) {
+        setUsers((prev) => {
+          const freshMap = new Map(fresh.map((f) => [f.id, f]));
+          const merged = prev.map((u) => {
+            const fetched = freshMap.get(u.id);
+            if (!fetched) return u;
+            return {
+              ...fetched,
+              password: u.password || fetched.password,
+            };
+          });
+          try {
+            localStorage.setItem("pustakability_users", JSON.stringify(merged));
+          } catch {}
+          return merged;
+        });
+      }
     } catch (err) {
       console.warn("Failed to update user in Supabase:", err);
     }
