@@ -190,7 +190,7 @@ export async function apiRegisterUser(userData: {
 
   // 2. Insert into relational `profiles` table
   try {
-    await fetch(`https://${projectId}.supabase.co/rest/v1/profiles`, {
+    const res = await fetch(`https://${projectId}.supabase.co/rest/v1/profiles`, {
       method: "POST",
       headers: HEADERS,
       body: JSON.stringify({
@@ -204,6 +204,9 @@ export async function apiRegisterUser(userData: {
         disability: userData.disability,
       }),
     });
+    if (!res.ok) {
+      console.warn("Profiles table insert response:", res.status, await res.text());
+    }
   } catch (e) {
     console.warn("Profiles table insert notice:", e);
   }

@@ -123,13 +123,30 @@ function AppInner() {
     } catch {}
     return INITIAL_USERS;
   });
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    try {
+      const saved = localStorage.getItem("pustakability_darkmode");
+      if (saved !== null) return JSON.parse(saved);
+    } catch {}
+    return false;
+  });
   const [legalTab, setLegalTab] = useState<LegalTab | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
 
   const [selectedBookId, setSelectedBookId] = useState<string | null>(() => {
     return getInitialUrlState().bookId;
   });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("pustakability_darkmode", JSON.stringify(darkMode));
+    } catch {}
+    if (darkMode) {
+      document.documentElement.classList.add("dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+    }
+  }, [darkMode]);
 
   useEffect(() => {
     try {

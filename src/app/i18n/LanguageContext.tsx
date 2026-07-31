@@ -16,7 +16,21 @@ const LanguageContext = createContext<LanguageContextValue>({
 });
 
 export function LanguageProvider({ children }: { children: ReactNode }) {
-  const [lang, setLang] = useState<Lang>("id");
+  const [lang, setLangState] = useState<Lang>(() => {
+    try {
+      const saved = localStorage.getItem("pustakability_lang");
+      if (saved === "id" || saved === "en") return saved;
+    } catch {}
+    return "id";
+  });
+
+  const setLang = (l: Lang) => {
+    setLangState(l);
+    try {
+      localStorage.setItem("pustakability_lang", l);
+    } catch {}
+  };
+
   const translate = <T extends { id: string; en: string }>(entry: T) => tr(entry, lang);
 
   return (
