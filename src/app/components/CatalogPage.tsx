@@ -5,6 +5,7 @@ import { useBooks } from "../contexts/BookContext";
 import type { UserRole, Page } from "../App";
 import { useLanguage } from "../i18n/LanguageContext";
 import { t as T } from "../i18n/translations";
+import { getTranslatedCategory, getTranslatedFormat, normalizeFormats } from "../data/books";
 
 interface CatalogPageProps {
   darkMode: boolean;
@@ -16,7 +17,7 @@ interface CatalogPageProps {
 }
 
 export function CatalogPage({ darkMode: dm, role, onOpenBook, onNavigate, initialQuery = "", initialFormat = "all" }: CatalogPageProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { books: allBooks } = useBooks();
   const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -187,13 +188,17 @@ export function CatalogPage({ darkMode: dm, role, onOpenBook, onNavigate, initia
                     <div style={{ fontSize: "0.8rem", color: muted, marginTop: "0.2rem" }}>{book.author}</div>
                     <div style={{ fontSize: "0.75rem", color: muted }}>{book.publisher} · {book.year}</div>
                     <div className="flex flex-wrap gap-1.5 mt-2">
-                      {book.formats.map(f => (
-                        <span key={f} className="px-2 py-0.5 rounded-md" style={{ backgroundColor: dm ? "#1E2D4F" : "#F3F4F6", color: muted, fontSize: "0.7rem" }}>{f}</span>
+                      {normalizeFormats(book.formats).map(f => (
+                        <span key={f} className="px-2 py-0.5 rounded-md font-medium" style={{ backgroundColor: dm ? "#1E2D4F" : "#F3F4F6", color: muted, fontSize: "0.7rem" }}>
+                          {getTranslatedFormat(f, lang)}
+                        </span>
                       ))}
                     </div>
                   </div>
                   <div className="flex flex-col items-end justify-between flex-shrink-0">
-                    <span className="px-2 py-0.5 rounded-full" style={{ backgroundColor: `${book.coverColor}18`, color: book.coverColor, fontSize: "0.72rem", fontWeight: 500 }}>{book.category}</span>
+                    <span className="px-2.5 py-1 rounded-full whitespace-nowrap font-medium text-xs" style={{ backgroundColor: `${book.coverColor || "#0A1172"}18`, color: dm ? "#A5B4FC" : (book.coverColor || "#0A1172") }}>
+                      {getTranslatedCategory(book.category, lang)}
+                    </span>
                   </div>
                 </div>
               ))}

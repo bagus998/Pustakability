@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { useBooks } from "../contexts/BookContext";
 import type { Book } from "../data/books";
+import { getTranslatedCategory, getTranslatedFormat, normalizeFormats } from "../data/books";
 import type { Page } from "../App";
 import { EditBookModal } from "./EditBookModal";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
@@ -74,7 +75,7 @@ const getStatusBadgeStyle = (status: string, dm: boolean) => {
 };
 
 export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, onUpdateUser, onDeleteUser }: AdminDashboardProps) {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const {
     books, pendingBooks,
     updateBook, deleteBook,
@@ -488,8 +489,8 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                             <td style={{ ...tdStyle, color: muted }}><div className="truncate max-w-[140px]" title={b.author}>{b.author}</div></td>
                             {/* Category */}
                             <td style={tdStyle}>
-                              <span className="px-2.5 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: `${b.coverColor}18`, color: b.coverColor, fontSize: "0.75rem", fontWeight: 600 }}>
-                                {b.category}
+                              <span className="px-2.5 py-1 rounded-full whitespace-nowrap font-medium text-xs" style={{ backgroundColor: dm ? "rgba(99, 102, 241, 0.18)" : `${b.coverColor || "#0A1172"}18`, color: dm ? "#A5B4FC" : (b.coverColor || "#0A1172") }}>
+                                {getTranslatedCategory(b.category, lang) || "—"}
                               </span>
                             </td>
                             {/* Year / Tahun */}
@@ -501,9 +502,15 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                             {/* Formats */}
                             <td style={tdStyle}>
                               <div className="flex flex-wrap gap-1 max-w-[170px]">
-                                {b.formats.map((f) => (
-                                  <span key={f} className="px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: dm ? "#1E2D4F" : "#EEF2FF", color: dm ? "#93C5FD" : "#3B5BDB", fontSize: "0.68rem", whiteSpace: "nowrap" }}>{f}</span>
-                                ))}
+                                {normalizeFormats(b.formats).length > 0 ? (
+                                  normalizeFormats(b.formats).map((f) => (
+                                    <span key={f} className="px-2 py-0.5 rounded-md font-medium text-xs" style={{ backgroundColor: dm ? "rgba(59, 91, 219, 0.25)" : "#EEF2FF", color: dm ? "#93C5FD" : "#3B5BDB", whiteSpace: "nowrap" }}>
+                                      {getTranslatedFormat(f, lang)}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span style={{ color: muted, fontSize: "0.75rem" }}>—</span>
+                                )}
                               </div>
                             </td>
                             {/* Chapter count */}
@@ -585,7 +592,7 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                         <div className="flex items-start justify-between gap-4 flex-wrap">
                           <div>
                             <h3 style={{ fontSize: "1rem", fontWeight: 600, color: text }}>{book.title}</h3>
-                            <p style={{ fontSize: "0.85rem", color: muted }}>{book.author} · {book.category} · {book.year}</p>
+                            <p style={{ fontSize: "0.85rem", color: muted }}>{book.author} · {getTranslatedCategory(book.category, lang)} · {book.year}</p>
                             <p style={{ fontSize: "0.8rem", color: muted, marginTop: "0.375rem", lineHeight: 1.5 }}>{book.description}</p>
                             {book.chapterCount != null && (
                               <p style={{ fontSize: "0.75rem", color: muted, marginTop: "0.25rem" }}>
@@ -594,7 +601,9 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                             )}
                             <div className="flex gap-1.5 mt-2">
                               {book.formats.map((f) => (
-                                <span key={f} className="px-2 py-0.5 rounded-full" style={{ backgroundColor: dm ? "#1E2D4F" : "#F3F4F6", color: muted, fontSize: "0.7rem" }}>{f}</span>
+                                <span key={f} className="px-2 py-0.5 rounded-full" style={{ backgroundColor: dm ? "#1E2D4F" : "#F3F4F6", color: muted, fontSize: "0.7rem" }}>
+                                  {getTranslatedFormat(f, lang)}
+                                </span>
                               ))}
                             </div>
                             <p style={{ fontSize: "0.75rem", color: muted, marginTop: "0.5rem" }}>

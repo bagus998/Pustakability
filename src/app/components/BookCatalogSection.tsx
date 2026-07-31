@@ -1,5 +1,5 @@
 import { ArrowRight, Lock, Eye } from "lucide-react";
-import { type Book } from "../data/books";
+import { type Book, getTranslatedCategory, getTranslatedFormat, normalizeFormats } from "../data/books";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import type { UserRole, Page } from "../App";
 import { useLanguage } from "../i18n/LanguageContext";
@@ -21,17 +21,27 @@ export interface BookCardProps {
 }
 
 const formatColors: Record<string, string> = {
-  Audio: "#00D4AC", PDF: "#3B5BDB", DAISY: "#0A1172",
-  Braille: "#87C4E8", "Braille Digital": "#87C4E8", "PDF Aksesibel": "#3B5BDB",
+  Audio: "#00D4AC",
+  "Audio Book": "#00D4AC",
+  PDF: "#3B5BDB",
+  "PDF Aksesibel": "#3B5BDB",
+  "Accessible PDF": "#3B5BDB",
+  DAISY: "#0A1172",
+  Braille: "#87C4E8",
+  "Braille Digital": "#87C4E8",
+  "Digital Braille": "#87C4E8",
+  "EPUB Aksesibel": "#9333EA",
+  "Accessible EPUB": "#9333EA",
 };
 
 export function BookCard({ book, darkMode: dm, role, onOpenBook }: BookCardProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const isGuest = role === "guest";
   const card   = dm ? "#1A2240" : "#FFFFFF";
   const border = dm ? "#1E2D4F" : "#F0F0F0";
   const text   = dm ? "#F1F5F9" : "#0F1B35";
   const muted  = dm ? "#94A3B8" : "#6B7280";
+  const formatsList = normalizeFormats(book.formats);
 
   return (
     <article
@@ -58,7 +68,7 @@ export function BookCard({ book, darkMode: dm, role, onOpenBook }: BookCardProps
         )}
 
         <div className="absolute top-3 left-3 px-2 py-1 rounded-lg" style={{ backgroundColor: "rgba(0,0,0,0.5)", backdropFilter: "blur(4px)", fontSize: "0.65rem", fontWeight: 600, color: "white" }}>
-          {book.category}
+          {getTranslatedCategory(book.category, lang)}
         </div>
 
         <div className="absolute bottom-0 left-0 right-0 p-3">
@@ -75,9 +85,9 @@ export function BookCard({ book, darkMode: dm, role, onOpenBook }: BookCardProps
         </div>
 
         <div className="flex flex-wrap gap-1 mb-3">
-          {book.formats.map((fmt) => (
-            <span key={fmt} className="px-1.5 py-0.5 rounded" style={{ backgroundColor: `${formatColors[fmt] ?? "#6B7280"}18`, color: formatColors[fmt] ?? "#6B7280", fontSize: "0.65rem", fontWeight: 500 }}>
-              {fmt}
+          {formatsList.map((fmt) => (
+            <span key={fmt} className="px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: `${formatColors[fmt] ?? "#3B5BDB"}18`, color: formatColors[fmt] ?? "#3B5BDB", fontSize: "0.65rem" }}>
+              {getTranslatedFormat(fmt, lang)}
             </span>
           ))}
         </div>

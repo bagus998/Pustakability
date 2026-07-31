@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Plus, Clock, CheckCircle, XCircle, BookOpen } from "lucide-react";
 import type { AuthUser, Page } from "../App";
-import { categories } from "../data/books";
+import { categories, formatOptions, getTranslatedCategory, getTranslatedFormat } from "../data/books";
 import { FileUploadForm } from "./FileUploadForm";
 import { apiUploadBook } from "../api/books";
 import { useBooks } from "../contexts/BookContext";
@@ -17,12 +17,8 @@ interface VolunteerDashboardProps {
 
 type Tab = "submissions" | "add";
 
-const formatOptions = ["Audio", "PDF Aksesibel", "DAISY", "Braille Digital"];
-
-// statusBadge built inside component using t() so labels translate
-
 export function VolunteerDashboard({ darkMode: dm, user, onNavigate }: VolunteerDashboardProps) {
-  const { t } = useLanguage();
+  const { lang, t } = useLanguage();
   const { pendingBooks, addLocalBook } = useBooks();
 
   const statusBadge: Record<string, { bg: string; text: string; label: string; icon: React.FC<any> }> = {
@@ -197,7 +193,7 @@ export function VolunteerDashboard({ darkMode: dm, user, onNavigate }: Volunteer
                     <div key={s.id} className="rounded-2xl p-5 flex items-start justify-between gap-4" style={{ backgroundColor: card, border: `1px solid ${border}` }}>
                       <div>
                         <h3 style={{ fontSize: "1rem", fontWeight: 600, color: text }}>{s.title}</h3>
-                        <p style={{ fontSize: "0.85rem", color: muted }}>{s.author} · {s.category}</p>
+                        <p style={{ fontSize: "0.85rem", color: muted }}>{s.author} · {getTranslatedCategory(s.category, lang)}</p>
                         {s.chapterCount != null && (
                           <p style={{ fontSize: "0.75rem", color: muted, marginTop: "0.2rem" }}>
                             {s.chapterCount} bab terdeteksi · {s.fileType?.toUpperCase() || "—"}
@@ -285,7 +281,7 @@ export function VolunteerDashboard({ darkMode: dm, user, onNavigate }: Volunteer
                     </label>
                     <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} required style={{ ...inputStyle, cursor: "pointer" }} disabled={uploading}>
                       <option value="">{t(T.volunteer.form.categoryPh)}</option>
-                      {categories.filter((c) => c !== "Semua").map((c) => <option key={c} value={c}>{c}</option>)}
+                      {categories.filter((c) => c !== "Semua").map((c) => <option key={c} value={c}>{getTranslatedCategory(c, lang)}</option>)}
                     </select>
                   </div>
                   <div>
@@ -314,8 +310,14 @@ export function VolunteerDashboard({ darkMode: dm, user, onNavigate }: Volunteer
                       return (
                         <button key={fmt} type="button" onClick={() => toggleFormat(fmt)} disabled={uploading} aria-pressed={active}
                           className="px-4 py-2 rounded-xl transition-all"
-                          style={{ border: `2px solid ${active ? "#0A1172" : border}`, backgroundColor: active ? (dm ? "#1E2D4F" : "#EEF2FF") : "transparent", color: active ? "#3B5BDB" : muted, fontSize: "0.85rem", fontWeight: active ? 600 : 400 }}>
-                          {fmt}
+                          style={{
+                            border: `2px solid ${active ? (dm ? "#3B5BDB" : "#0A1172") : border}`,
+                            backgroundColor: active ? (dm ? "rgba(59, 91, 219, 0.25)" : "#EEF2FF") : (dm ? "#161B2E" : "#F8FAFC"),
+                            color: active ? (dm ? "#93C5FD" : "#3B5BDB") : (dm ? "#CBD5E1" : "#4B5563"),
+                            fontSize: "0.85rem",
+                            fontWeight: active ? 600 : 500,
+                          }}>
+                          {getTranslatedFormat(fmt, lang)}
                         </button>
                       );
                     })}

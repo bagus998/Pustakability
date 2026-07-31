@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { X, Save, ImageIcon } from "lucide-react";
 import type { Book } from "../data/books";
-import { categories } from "../data/books";
+import { categories, formatOptions, getTranslatedCategory, getTranslatedFormat } from "../data/books";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { useLanguage } from "../i18n/LanguageContext";
 
 interface EditBookModalProps {
   book: Book;
@@ -11,9 +12,8 @@ interface EditBookModalProps {
   onClose: () => void;
 }
 
-const formatOptions = ["Audio", "PDF", "DAISY", "Braille"];
-
 export function EditBookModal({ book, darkMode: dm, onSave, onClose }: EditBookModalProps) {
+  const { lang } = useLanguage();
   const [form, setForm] = useState({
     title:       book.title,
     author:      book.author,
@@ -209,7 +209,7 @@ export function EditBookModal({ book, darkMode: dm, onSave, onClose }: EditBookM
                 style={{ ...inputStyle, cursor: "pointer" }}
               >
                 {categories.filter((c) => c !== "Semua").map((c) => (
-                  <option key={c} value={c}>{c}</option>
+                  <option key={c} value={c}>{getTranslatedCategory(c, lang)}</option>
                 ))}
               </select>
             </div>
@@ -261,7 +261,7 @@ export function EditBookModal({ book, darkMode: dm, onSave, onClose }: EditBookM
                         fontWeight: active ? 600 : 400,
                       }}
                     >
-                      {fmt}
+                      {getTranslatedFormat(fmt, lang)}
                     </button>
                   );
                 })}

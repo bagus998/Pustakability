@@ -5,12 +5,60 @@ import { t as T } from "../i18n/translations";
 interface TestimonialsSectionProps { darkMode: boolean; }
 
 const testimonials = [
-  { name: "Ahmad Fauzan", faculty: "Fakultas Hukum, Angkatan 2021", disability: "Tunanetra", initials: "AF", color: "#0A1172",
-    text: { id: "Pustakability benar-benar mengubah cara saya belajar. Sebelumnya saya harus meminta bantuan teman untuk membacakan materi, tapi sekarang saya bisa mengakses semua buku hukum dalam format audio kapan saja.", en: "Pustakability truly changed how I learn. Before, I had to ask friends to read materials for me, but now I can access all law books in audio format anytime." } },
-  { name: "Siti Rahayu", faculty: "Fakultas MIPA, Angkatan 2020", disability: "Disleksia", initials: "SR", color: "#0D7070",
-    text: { id: "Fitur font aksesibel dan pengaturan spasi baris sangat membantu saya. Saya dulu selalu kesulitan membaca teks padat di buku cetak, tapi dengan Pustakability saya bisa membaca dengan jauh lebih nyaman.", en: "The accessible font feature and line spacing settings help me a lot. I used to struggle reading dense text in print books, but with Pustakability I can read much more comfortably." } },
-  { name: "Rizky Pratama", faculty: "Fakultas Teknik, Angkatan 2022", disability: "Low Vision", initials: "RP", color: "#3B5BDB",
-    text: { id: "Format DAISY sangat bagus karena saya bisa langsung melompat ke bagian yang saya butuhkan. Terima kasih PLD UB atas layanan yang luar biasa ini!", en: "The DAISY format is great because I can jump directly to the section I need. Thank you PLD UB for this amazing service!" } },
+  {
+    name: "Ahmad Fauzan",
+    faculty: {
+      id: "Fakultas Hukum, Angkatan 2021",
+      en: "Faculty of Law, Class of 2021",
+    },
+    disability: {
+      id: "Tunanetra",
+      en: "Visually Impaired",
+    },
+    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    initials: "AF",
+    color: "#0A1172",
+    text: {
+      id: "Pustakability benar-benar mengubah cara saya belajar. Sebelumnya saya harus meminta bantuan teman untuk membacakan materi, tapi sekarang saya bisa mengakses semua buku hukum dalam format audio kapan saja.",
+      en: "Pustakability truly changed how I learn. Before, I had to ask friends to read materials for me, but now I can access all law books in audio format anytime.",
+    },
+  },
+  {
+    name: "Siti Rahayu",
+    faculty: {
+      id: "Fakultas MIPA, Angkatan 2020",
+      en: "Faculty of Mathematics & Natural Sciences, Class of 2020",
+    },
+    disability: {
+      id: "Disleksia",
+      en: "Dyslexia",
+    },
+    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+    initials: "SR",
+    color: "#0D7070",
+    text: {
+      id: "Fitur font aksesibel dan pengaturan spasi baris sangat membantu saya. Saya dulu selalu kesulitan membaca teks padat di buku cetak, tapi dengan Pustakability saya bisa membaca dengan jauh lebih nyaman.",
+      en: "The accessible font feature and line spacing settings help me a lot. I used to struggle reading dense text in print books, but with Pustakability I can read much more comfortably.",
+    },
+  },
+  {
+    name: "Rizky Pratama",
+    faculty: {
+      id: "Fakultas Teknik, Angkatan 2022",
+      en: "Faculty of Engineering, Class of 2022",
+    },
+    disability: {
+      id: "Low Vision",
+      en: "Low Vision",
+    },
+    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+    initials: "RP",
+    color: "#3B5BDB",
+    text: {
+      id: "Format DAISY sangat bagus karena saya bisa langsung melompat ke bagian yang saya butuhkan. Terima kasih PLD UB atas layanan yang luar biasa ini!",
+      en: "The DAISY format is great because I can jump directly to the section I need. Thank you PLD UB for this amazing service!",
+    },
+  },
 ];
 
 export function TestimonialsSection({ darkMode: dm }: TestimonialsSectionProps) {
@@ -40,13 +88,23 @@ export function TestimonialsSection({ darkMode: dm }: TestimonialsSectionProps) 
                 "{tv.text[lang]}"
               </p>
               <footer className="flex items-center gap-3 mt-auto">
-                <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold" style={{ backgroundColor: tv.color, fontSize: "0.8rem" }} aria-hidden="true">
-                  {tv.initials}
-                </div>
+                {tv.avatarUrl ? (
+                  <img
+                    src={tv.avatarUrl}
+                    alt={tv.name}
+                    className="w-10 h-10 rounded-full object-cover border border-[#3B5BDB]/20 flex-shrink-0"
+                  />
+                ) : (
+                  <div className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center text-white font-bold" style={{ backgroundColor: tv.color, fontSize: "0.8rem" }} aria-hidden="true">
+                    {tv.initials}
+                  </div>
+                )}
                 <div>
                   <div style={{ fontSize: "0.875rem", fontWeight: 600, color: text }}>{tv.name}</div>
-                  <div style={{ fontSize: "0.75rem", color: muted }}>{tv.faculty}</div>
-                  <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full" style={{ backgroundColor: lbg, color: lc, fontSize: "0.65rem", fontWeight: 600 }}>{tv.disability}</span>
+                  <div style={{ fontSize: "0.75rem", color: muted }}>{tv.faculty[lang]}</div>
+                  <span className="inline-block mt-0.5 px-2 py-0.5 rounded-full" style={{ backgroundColor: lbg, color: lc, fontSize: "0.65rem", fontWeight: 600 }}>
+                    {tv.disability[lang]}
+                  </span>
                 </div>
               </footer>
             </blockquote>
