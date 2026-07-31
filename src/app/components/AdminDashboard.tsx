@@ -198,7 +198,7 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
               <div className="flex items-center gap-1.5">
                 {apiAvailable
                   ? <><Wifi className="w-4 h-4 text-[#00D4AC]" aria-hidden="true" /><span className="text-[#00D4AC]" style={{ fontSize: "0.78rem" }}>{t(T.admin.connectedToSupabase)}</span></>
-                  : <><WifiOff className="w-4 h-4 text-yellow-400" aria-hidden="true" /><span className="text-yellow-400" style={{ fontSize: "0.78rem" }}>Mode offline — data lokal</span></>
+                  : <><WifiOff className="w-4 h-4 text-yellow-400" aria-hidden="true" /><span className="text-yellow-400" style={{ fontSize: "0.78rem" }}>{t(T.admin.offlineMode)}</span></>
                 }
               </div>
               <button
@@ -441,7 +441,7 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                             { key: "title" as const, label: t(T.admin.books.bookTitle) },
                             { key: "author" as const, label: t(T.admin.books.author) },
                             { key: "category" as const, label: t(T.admin.books.category) },
-                            { key: "year" as const, label: "Tahun" },
+                            { key: "year" as const, label: t(T.admin.books.year) },
                           ].map((col) => (
                             <th
                               key={col.key}
@@ -458,7 +458,7 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                             </th>
                           ))}
                           <th style={thStyle}>{t(T.admin.books.format)}</th>
-                          <th style={thStyle}>Bab</th>
+                          <th style={thStyle}>{t(T.admin.books.chapters)}</th>
                           <th style={thStyle}>{t(T.admin.books.action)}</th>
                         </tr>
                       </thead>
@@ -477,27 +477,40 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                                   <img src={b.coverImage} alt="" className="w-full h-full object-cover" />
                                 </div>
                                 <div className="min-w-0">
-                                  <div className="truncate max-w-[180px]" style={{ fontWeight: 500 }} title={b.title}>{b.title}</div>
-                                  <div style={{ fontSize: "0.72rem", color: muted }}>{b.publisher}</div>
+                                  <div className="truncate max-w-[180px]" style={{ fontWeight: 600, color: text }} title={b.title}>{b.title}</div>
+                                  <div style={{ fontSize: "0.72rem", color: muted }}>
+                                    {b.publisher} {b.pages ? `· ${b.pages} ${t(T.admin.books.pages)}` : ""}
+                                  </div>
                                 </div>
                               </div>
                             </td>
+                            {/* Author */}
                             <td style={{ ...tdStyle, color: muted }}><div className="truncate max-w-[140px]" title={b.author}>{b.author}</div></td>
+                            {/* Category */}
                             <td style={tdStyle}>
-                              <span className="px-2 py-0.5 rounded-full whitespace-nowrap" style={{ backgroundColor: `${b.coverColor}18`, color: b.coverColor, fontSize: "0.75rem", fontWeight: 500 }}>
+                              <span className="px-2.5 py-1 rounded-full whitespace-nowrap" style={{ backgroundColor: `${b.coverColor}18`, color: b.coverColor, fontSize: "0.75rem", fontWeight: 600 }}>
                                 {b.category}
                               </span>
                             </td>
+                            {/* Year / Tahun */}
                             <td style={tdStyle}>
-                              <div className="flex flex-wrap gap-1">
+                              <span className="px-2 py-0.5 rounded-lg border text-xs font-semibold" style={{ borderColor: border, backgroundColor: dm ? "#0D1117" : "#F8FAFC", color: text }}>
+                                {b.year || "—"}
+                              </span>
+                            </td>
+                            {/* Formats */}
+                            <td style={tdStyle}>
+                              <div className="flex flex-wrap gap-1 max-w-[170px]">
                                 {b.formats.map((f) => (
-                                  <span key={f} className="px-1.5 py-0.5 rounded" style={{ backgroundColor: dm ? "#1E2D4F" : "#F3F4F6", color: muted, fontSize: "0.68rem", whiteSpace: "nowrap" }}>{f}</span>
+                                  <span key={f} className="px-1.5 py-0.5 rounded font-medium" style={{ backgroundColor: dm ? "#1E2D4F" : "#EEF2FF", color: dm ? "#93C5FD" : "#3B5BDB", fontSize: "0.68rem", whiteSpace: "nowrap" }}>{f}</span>
                                 ))}
                               </div>
                             </td>
                             {/* Chapter count */}
-                            <td style={{ ...tdStyle, color: muted }}>
-                              {b.chapterCount ?? b.chapters?.length ?? "—"}
+                            <td style={tdStyle}>
+                              <span className="px-2 py-0.5 rounded-full font-medium text-xs" style={{ backgroundColor: dm ? "#0F1623" : "#F3F4F6", color: text }}>
+                                {b.chapters?.length ?? b.chapterCount ?? 0} {t(T.admin.books.chapterUnit)}
+                              </span>
                             </td>
                             {/* Actions */}
                             <td style={tdStyle}>

@@ -388,7 +388,8 @@ export const t = {
   admin: {
     title:        { id: "Admin Dashboard",       en: "Admin Dashboard" },
     subtitle:     { id: "Kelola pengguna, koleksi buku, dan validasi kontribusi volunteer", en: "Manage users, book collections, and volunteer contribution validation" },
-    connectedToSupabase: { id: "Terhubung ke Supabase", en: "Connected to Supabase" },
+    connectedToSupabase: { id: "Terhubung", en: "Connected" },
+    offlineMode:  { id: "Mode Offline",           en: "Offline Mode" },
     refresh:      { id: "Segarkan",               en: "Refresh" },
     tabs: {
       overview:  { id: "Ringkasan",              en: "Overview" },
@@ -424,7 +425,11 @@ export const t = {
       bookTitle:  { id: "Judul",                 en: "Title" },
       author:     { id: "Penulis",               en: "Author" },
       category:   { id: "Kategori",              en: "Category" },
+      year:       { id: "Tahun",                 en: "Year" },
       format:     { id: "Format",                en: "Format" },
+      chapters:   { id: "Bab",                   en: "Chapters" },
+      pages:      { id: "hlm",                   en: "pages" },
+      chapterUnit:{ id: "Bab",                   en: "Ch." },
       status:     { id: "Status",                en: "Status" },
       action:     { id: "Aksi",                  en: "Action" },
       active:     { id: "Aktif",                 en: "Active" },
