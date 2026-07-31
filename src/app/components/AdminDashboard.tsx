@@ -33,11 +33,44 @@ const INITIAL_USERS: AppUser[] = [
   { id: "5", name: "Dewi Lestari",  email: "dewi@student.ub.ac.id",  role: "volunteer", faculty: "Ilmu Budaya", status: "active",  joined: "2024-03-25" },
 ];
 
-const roleColors: Record<string, string> = { admin: "#BE185D", user: "#0A1172", volunteer: "#0D7070" };
-const statusColors: Record<string, { bg: string; text: string }> = {
-  active:    { bg: "#DCFCE7", text: "#166534" },
-  pending:   { bg: "#FEF9C3", text: "#854D0E" },
-  suspended: { bg: "#FEE2E2", text: "#991B1B" },
+const getRoleBadgeStyle = (role: string, dm: boolean) => {
+  if (role === "admin") {
+    return {
+      bg: dm ? "rgba(244, 63, 94, 0.2)" : "#FCE7F3",
+      text: dm ? "#FB7185" : "#BE185D",
+    };
+  }
+  if (role === "volunteer") {
+    return {
+      bg: dm ? "rgba(20, 184, 166, 0.2)" : "#E6FFFA",
+      text: dm ? "#2DD4BF" : "#0D7070",
+    };
+  }
+  // Default 'user'
+  return {
+    bg: dm ? "rgba(99, 102, 241, 0.2)" : "#EEF2FF",
+    text: dm ? "#A5B4FC" : "#3B5BDB",
+  };
+};
+
+const getStatusBadgeStyle = (status: string, dm: boolean) => {
+  if (status === "active") {
+    return {
+      bg: dm ? "rgba(34, 197, 94, 0.2)" : "#DCFCE7",
+      text: dm ? "#4ADE80" : "#166534",
+    };
+  }
+  if (status === "pending") {
+    return {
+      bg: dm ? "rgba(234, 179, 8, 0.2)" : "#FEF9C3",
+      text: dm ? "#FACC15" : "#854D0E",
+    };
+  }
+  // suspended
+  return {
+    bg: dm ? "rgba(239, 68, 68, 0.2)" : "#FEE2E2",
+    text: dm ? "#F87171" : "#991B1B",
+  };
 };
 
 export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, onUpdateUser, onDeleteUser }: AdminDashboardProps) {
@@ -317,7 +350,7 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                                   className="w-8 h-8 rounded-full object-cover border border-[#3B5BDB]/20 flex-shrink-0"
                                 />
                               ) : (
-                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: roleColors[u.role] ?? "#0A1172", fontSize: "0.75rem", fontWeight: 700 }} aria-hidden="true">
+                                <div className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0" style={{ backgroundColor: getRoleBadgeStyle(u.role, dm).text, fontSize: "0.75rem", fontWeight: 700 }} aria-hidden="true">
                                   {u.name.charAt(0)}
                                 </div>
                               )}
@@ -326,13 +359,13 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                           </td>
                           <td style={{ ...tdStyle, color: muted }}>{u.email}</td>
                           <td style={tdStyle}>
-                            <span className="px-2.5 py-1 rounded-full capitalize" style={{ backgroundColor: `${roleColors[u.role]}18`, color: roleColors[u.role], fontSize: "0.75rem", fontWeight: 600 }}>
+                            <span className="px-2.5 py-1 rounded-full capitalize" style={{ backgroundColor: getRoleBadgeStyle(u.role, dm).bg, color: getRoleBadgeStyle(u.role, dm).text, fontSize: "0.75rem", fontWeight: 600 }}>
                               {u.role}
                             </span>
                           </td>
                           <td style={{ ...tdStyle, color: muted }}>{u.faculty}</td>
                           <td style={tdStyle}>
-                            <span className="px-2.5 py-1 rounded-full" style={{ backgroundColor: statusColors[u.status]?.bg, color: statusColors[u.status]?.text, fontSize: "0.75rem", fontWeight: 600 }}>
+                            <span className="px-2.5 py-1 rounded-full" style={{ backgroundColor: getStatusBadgeStyle(u.status, dm).bg, color: getStatusBadgeStyle(u.status, dm).text, fontSize: "0.75rem", fontWeight: 600 }}>
                               {u.status === "active" ? t(T.admin.users.active) : u.status === "pending" ? t(T.admin.users.pending) : t(T.admin.users.suspended)}
                             </span>
                           </td>

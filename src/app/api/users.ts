@@ -37,43 +37,67 @@ async function request<T>(
 }
 
 export async function apiFetchUsers(): Promise<AppUser[]> {
-  // 1. Try relational `profiles` table first
+  let profileUsers: AppUser[] = [];
+  const kvUsersMap = new Map<string, AppUser>();
+
+  // 1. Fetch KV store users first (contains passwords)
+  try {
+    const res = await fetch(`https://${projectId}.supabase.co/rest/v1/kv_store_d4405fa6?key=like.pustaka:user:*`, { headers: HEADERS });
+    if (res.ok) {
+      const rows: { key: string; value: AppUser }[] = await res.json();
+      if (Array.isArray(rows) && rows.length > 0) {
+        for (const r of rows) {
+          if (r.value?.email) {
+            kvUsersMap.set(r.value.email.toLowerCase(), r.value);
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.warn("KV store fetch notice:", e);
+  }
+
+  // 2. Fetch relational `profiles` table and merge passwords from KV store
   try {
     const res = await fetch(`https://${projectId}.supabase.co/rest/v1/profiles?select=*`, { headers: HEADERS });
     if (res.ok) {
       const rows = await res.json();
       if (Array.isArray(rows) && rows.length > 0) {
-        return rows.map((u: any) => ({
-          id: u.id || String(Date.now()),
-          name: u.name || "User",
-          email: u.email,
-          password: u.password || "",
-          role: u.role || "user",
-          faculty: u.faculty || "Teknik",
-          status: u.status || "pending",
-          joined: u.joined || u.created_at?.split("T")[0] || "2024-01-01",
-          nim: u.nim || "",
-          disability: u.disability || "",
-          avatarUrl: u.avatar_url || u.avatarUrl || "",
-        }));
+        profileUsers = rows.map((u: any) => {
+          const emailLower = (u.email || "").toLowerCase();
+          const kvMatch = kvUsersMap.get(emailLower);
+          return {
+            id: u.id || kvMatch?.id || String(Date.now()),
+            name: u.name || kvMatch?.name || "User",
+            email: u.email,
+            password: u.password || kvMatch?.password || "",
+            role: u.role || kvMatch?.role || "user",
+            faculty: u.faculty || kvMatch?.faculty || "Teknik",
+            status: u.status || kvMatch?.status || "pending",
+            joined: u.joined || u.created_at?.split("T")[0] || kvMatch?.joined || "2024-01-01",
+            nim: u.nim || kvMatch?.nim || "",
+            disability: u.disability || kvMatch?.disability || "",
+            avatarUrl: u.avatar_url || u.avatarUrl || kvMatch?.avatarUrl || "",
+          };
+        });
       }
     }
   } catch (e) {
     console.warn("Profiles table fetch notice:", e);
   }
 
-  // 2. Try `kv_store_d4405fa6` table
-  try {
-    const res = await fetch(`https://${projectId}.supabase.co/rest/v1/kv_store_d4405fa6?key=like.pustaka:user:*`, { headers: HEADERS });
-    if (res.ok) {
-      const rows: { key: string; value: AppUser }[] = await res.json();
-      if (Array.isArray(rows) && rows.length > 0) {
-        return rows.map((r) => r.value);
+  if (profileUsers.length > 0) {
+    // Merge any KV users that might not be in profiles table yet
+    const existingEmails = new Set(profileUsers.map((u) => u.email.toLowerCase()));
+    for (const [email, kvUser] of kvUsersMap.entries()) {
+      if (!existingEmails.has(email)) {
+        profileUsers.push(kvUser);
       }
     }
-  } catch (e) {
-    console.warn("KV store fetch notice:", e);
+    return profileUsers;
   }
+
+  if (kvUsersMap.size > 0) return Array.from(kvUsersMap.values());
 
   // 3. Fallback to Edge Function if available
   try {
