@@ -7,6 +7,7 @@ import {
 import { useBooks } from "../contexts/BookContext";
 import type { Book } from "../data/books";
 import { getTranslatedCategory, getTranslatedFormat, normalizeFormats } from "../data/books";
+import { getTranslatedFaculty } from "../data/faculties";
 import type { Page } from "../App";
 import { EditBookModal } from "./EditBookModal";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
@@ -310,20 +311,20 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                     <thead style={{ borderBottom: `1px solid ${border}`, backgroundColor: dm ? "#0F1623" : "#F9FAFB" }}>
                       <tr>
                         {[
-                          { key: "name" as const, label: t(T.admin.users.name) },
-                          { key: "email" as const, label: t(T.admin.users.email) },
-                          { key: "role" as const, label: t(T.admin.users.role) },
-                          { key: "faculty" as const, label: t(T.admin.users.faculty) },
-                          { key: "status" as const, label: t(T.admin.users.status) },
-                          { key: "joined" as const, label: t(T.admin.users.joined) },
+                          { key: "name" as const, label: t(T.admin.users.name), align: "left" },
+                          { key: "email" as const, label: t(T.admin.users.email), align: "left" },
+                          { key: "role" as const, label: t(T.admin.users.role), align: "center" },
+                          { key: "faculty" as const, label: t(T.admin.users.faculty), align: "left" },
+                          { key: "status" as const, label: t(T.admin.users.status), align: "center" },
+                          { key: "joined" as const, label: t(T.admin.users.joined), align: "center" },
                         ].map((col) => (
                           <th
                             key={col.key}
-                            style={{ ...thStyle, cursor: "pointer", userSelect: "none" }}
+                            style={{ ...thStyle, textAlign: col.align as any, cursor: "pointer", userSelect: "none" }}
                             onClick={() => toggleUserSort(col.key)}
                             title={`Urutkan berdasarkan ${col.label}`}
                           >
-                            <div className="flex items-center gap-1.5">
+                            <div className={`flex items-center gap-1.5 ${col.align === "center" ? "justify-center" : ""}`}>
                               <span>{col.label}</span>
                               <span style={{ fontSize: "0.68rem", opacity: userSortField === col.key ? 1 : 0.4 }}>
                                 {userSortField === col.key ? (userSortOrder === "asc" ? "▲" : "▼") : "↕"}
@@ -331,7 +332,7 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                             </div>
                           </th>
                         ))}
-                        <th style={thStyle}>{t(T.admin.users.action)}</th>
+                        <th style={{ ...thStyle, textAlign: "center" }}>{t(T.admin.users.action)}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -359,20 +360,24 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                             </div>
                           </td>
                           <td style={{ ...tdStyle, color: muted }}>{u.email}</td>
-                          <td style={tdStyle}>
+                          <td style={{ ...tdStyle, textAlign: "center" }}>
                             <span className="px-2.5 py-1 rounded-full capitalize" style={{ backgroundColor: getRoleBadgeStyle(u.role, dm).bg, color: getRoleBadgeStyle(u.role, dm).text, fontSize: "0.75rem", fontWeight: 600 }}>
                               {u.role}
                             </span>
                           </td>
-                          <td style={{ ...tdStyle, color: muted }}>{u.faculty}</td>
-                          <td style={tdStyle}>
+                          <td style={{ ...tdStyle, color: text }}>
+                            <span className="font-medium text-xs truncate max-w-[170px] inline-block" title={getTranslatedFaculty(u.faculty, lang)}>
+                              {getTranslatedFaculty(u.faculty, lang)}
+                            </span>
+                          </td>
+                          <td style={{ ...tdStyle, textAlign: "center" }}>
                             <span className="px-2.5 py-1 rounded-full" style={{ backgroundColor: getStatusBadgeStyle(u.status, dm).bg, color: getStatusBadgeStyle(u.status, dm).text, fontSize: "0.75rem", fontWeight: 600 }}>
                               {u.status === "active" ? t(T.admin.users.active) : u.status === "pending" ? t(T.admin.users.pending) : t(T.admin.users.suspended)}
                             </span>
                           </td>
-                          <td style={{ ...tdStyle, color: muted }}>{u.joined}</td>
-                          <td style={tdStyle}>
-                            <div className="flex items-center gap-1.5">
+                          <td style={{ ...tdStyle, textAlign: "center", color: muted }}>{u.joined}</td>
+                          <td style={{ ...tdStyle, textAlign: "center" }}>
+                            <div className="flex items-center justify-center gap-1.5">
                               {u.status === "pending" && (
                                 <button
                                   onClick={() => handleUpdateUser(u.id, { status: "active" })}
@@ -438,29 +443,29 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                     <table className="w-full">
                       <thead style={{ borderBottom: `1px solid ${border}`, backgroundColor: dm ? "#0F1623" : "#F9FAFB" }}>
                         <tr>
-                          {[
-                            { key: "title" as const, label: t(T.admin.books.bookTitle) },
-                            { key: "author" as const, label: t(T.admin.books.author) },
-                            { key: "category" as const, label: t(T.admin.books.category) },
-                            { key: "year" as const, label: t(T.admin.books.year) },
-                          ].map((col) => (
-                            <th
-                              key={col.key}
-                              style={{ ...thStyle, cursor: "pointer", userSelect: "none" }}
-                              onClick={() => toggleBookSort(col.key)}
-                              title={`Urutkan berdasarkan ${col.label}`}
-                            >
-                              <div className="flex items-center gap-1.5">
-                                <span>{col.label}</span>
-                                <span style={{ fontSize: "0.68rem", opacity: bookSortField === col.key ? 1 : 0.4 }}>
-                                  {bookSortField === col.key ? (bookSortOrder === "asc" ? "▲" : "▼") : "↕"}
-                                </span>
-                              </div>
-                            </th>
-                          ))}
-                          <th style={thStyle}>{t(T.admin.books.format)}</th>
-                          <th style={thStyle}>{t(T.admin.books.chapters)}</th>
-                          <th style={thStyle}>{t(T.admin.books.action)}</th>
+                        {[
+                          { key: "title" as const, label: t(T.admin.books.bookTitle), align: "left" },
+                          { key: "author" as const, label: t(T.admin.books.author), align: "left" },
+                          { key: "category" as const, label: t(T.admin.books.category), align: "center" },
+                          { key: "year" as const, label: t(T.admin.books.year), align: "center" },
+                        ].map((col) => (
+                          <th
+                            key={col.key}
+                            style={{ ...thStyle, textAlign: col.align as any, cursor: "pointer", userSelect: "none" }}
+                            onClick={() => toggleBookSort(col.key)}
+                            title={`Urutkan berdasarkan ${col.label}`}
+                          >
+                            <div className={`flex items-center gap-1.5 ${col.align === "center" ? "justify-center" : ""}`}>
+                              <span>{col.label}</span>
+                              <span style={{ fontSize: "0.68rem", opacity: bookSortField === col.key ? 1 : 0.4 }}>
+                                {bookSortField === col.key ? (bookSortOrder === "asc" ? "▲" : "▼") : "↕"}
+                              </span>
+                            </div>
+                          </th>
+                        ))}
+                        <th style={{ ...thStyle, textAlign: "center" }}>{t(T.admin.books.format)}</th>
+                        <th style={{ ...thStyle, textAlign: "center" }}>{t(T.admin.books.chapters)}</th>
+                        <th style={{ ...thStyle, textAlign: "center" }}>{t(T.admin.books.action)}</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -488,20 +493,20 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                             {/* Author */}
                             <td style={{ ...tdStyle, color: muted }}><div className="truncate max-w-[140px]" title={b.author}>{b.author}</div></td>
                             {/* Category */}
-                            <td style={tdStyle}>
-                              <span className="px-2.5 py-1 rounded-full whitespace-nowrap font-medium text-xs" style={{ backgroundColor: dm ? "rgba(99, 102, 241, 0.18)" : `${b.coverColor || "#0A1172"}18`, color: dm ? "#A5B4FC" : (b.coverColor || "#0A1172") }}>
+                            <td style={{ ...tdStyle, textAlign: "center" }}>
+                              <span className="px-2.5 py-1 rounded-full whitespace-nowrap font-medium text-xs inline-block" style={{ backgroundColor: dm ? "rgba(99, 102, 241, 0.18)" : `${b.coverColor || "#0A1172"}18`, color: dm ? "#A5B4FC" : (b.coverColor || "#0A1172") }}>
                                 {getTranslatedCategory(b.category, lang) || "—"}
                               </span>
                             </td>
                             {/* Year / Tahun */}
-                            <td style={tdStyle}>
-                              <span className="px-2 py-0.5 rounded-lg border text-xs font-semibold" style={{ borderColor: border, backgroundColor: dm ? "#0D1117" : "#F8FAFC", color: text }}>
+                            <td style={{ ...tdStyle, textAlign: "center" }}>
+                              <span className="px-2 py-0.5 rounded-lg border text-xs font-semibold inline-block" style={{ borderColor: border, backgroundColor: dm ? "#0D1117" : "#F8FAFC", color: text }}>
                                 {b.year || "—"}
                               </span>
                             </td>
                             {/* Formats */}
-                            <td style={tdStyle}>
-                              <div className="flex flex-wrap gap-1 max-w-[170px]">
+                            <td style={{ ...tdStyle, textAlign: "center" }}>
+                              <div className="flex flex-wrap items-center justify-center gap-1 max-w-[170px] mx-auto">
                                 {normalizeFormats(b.formats).length > 0 ? (
                                   normalizeFormats(b.formats).map((f) => (
                                     <span key={f} className="px-2 py-0.5 rounded-md font-medium text-xs" style={{ backgroundColor: dm ? "rgba(59, 91, 219, 0.25)" : "#EEF2FF", color: dm ? "#93C5FD" : "#3B5BDB", whiteSpace: "nowrap" }}>
@@ -514,14 +519,14 @@ export function AdminDashboard({ darkMode: dm, onNavigate, users: propsUsers, on
                               </div>
                             </td>
                             {/* Chapter count */}
-                            <td style={tdStyle}>
-                              <span className="px-2 py-0.5 rounded-full font-medium text-xs" style={{ backgroundColor: dm ? "#0F1623" : "#F3F4F6", color: text }}>
+                            <td style={{ ...tdStyle, textAlign: "center" }}>
+                              <span className="px-2.5 py-0.5 rounded-full font-medium text-xs inline-block" style={{ backgroundColor: dm ? "#0F1623" : "#F3F4F6", color: text }}>
                                 {b.chapters?.length ?? b.chapterCount ?? 0} {t(T.admin.books.chapterUnit)}
                               </span>
                             </td>
                             {/* Actions */}
-                            <td style={tdStyle}>
-                              <div className="flex items-center gap-1.5 flex-wrap">
+                            <td style={{ ...tdStyle, textAlign: "center" }}>
+                              <div className="flex items-center justify-center gap-1.5 flex-wrap">
                                 {/* Edit metadata */}
                                 <button
                                   onClick={() => setEditBook(b)}

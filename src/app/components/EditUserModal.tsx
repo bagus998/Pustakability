@@ -1,33 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Save, UserCog, KeyRound, Eye, EyeOff } from "lucide-react";
-
-export interface AppUser {
-  id: string;
-  name: string;
-  email: string;
-  role: "admin" | "user" | "volunteer";
-  faculty: string;
-  status: "active" | "pending" | "suspended";
-  joined: string;
-  nim?: string;
-  disability?: string;
-  avatarUrl?: string;
-  password?: string;
-}
-
-interface EditUserModalProps {
-  user: AppUser;
-  darkMode: boolean;
-  onSave: (id: string, updates: Partial<AppUser>) => void;
-  onClose: () => void;
-}
-
-const faculties = [
-  "Hukum", "Ilmu Administrasi", "Pertanian", "Teknik", "Kedokteran",
-  "Perikanan & Ilmu Kelautan", "Peternakan", "Ilmu Sosial & Ilmu Politik",
-  "Ilmu Budaya", "MIPA", "Teknologi Pertanian", "Ekonomi & Bisnis",
-  "Ilmu Komputer", "Ilmu Kesehatan", "Vokasi", "Rektorat",
-];
+import { useLanguage } from "../i18n/LanguageContext";
+import { faculties, getTranslatedFaculty } from "../data/faculties";
 
 const roleBadge: Record<string, { bg: string; text: string }> = {
   admin:     { bg: "#FCE7F3", text: "#9D174D" },
@@ -42,6 +16,7 @@ const statusBadge: Record<string, { bg: string; text: string; label: string }> =
 };
 
 export function EditUserModal({ user, darkMode: dm, onSave, onClose }: EditUserModalProps) {
+  const { lang } = useLanguage();
   const [form, setForm] = useState<AppUser>({ ...user });
   const [newPassword, setNewPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -261,7 +236,7 @@ export function EditUserModal({ user, darkMode: dm, onSave, onClose }: EditUserM
                 onChange={(e) => setForm({ ...form, faculty: e.target.value })}
                 style={{ ...inputStyle, cursor: "pointer" }}
               >
-                {faculties.map((f) => <option key={f} value={f}>{f}</option>)}
+                {faculties.map((f) => <option key={f} value={f}>{getTranslatedFaculty(f, lang)}</option>)}
               </select>
             </div>
 

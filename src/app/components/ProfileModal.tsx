@@ -6,6 +6,7 @@ import { AppUser } from "./EditUserModal";
 import { useToast } from "../contexts/ToastContext";
 import { apiChangePassword } from "../api/users";
 import { projectId, publicAnonKey } from "../../../utils/supabase/info";
+import { faculties, getTranslatedFaculty } from "../data/faculties";
 
 interface ProfileModalProps {
   user: AppUser;
@@ -13,13 +14,6 @@ interface ProfileModalProps {
   onClose: () => void;
   onUpdateUser: (id: string, updates: Partial<AppUser>) => void;
 }
-
-const faculties = [
-  "Hukum", "Ilmu Administrasi", "Pertanian", "Teknik", "Kedokteran",
-  "Perikanan & Ilmu Kelautan", "Peternakan", "Ilmu Sosial & Ilmu Politik",
-  "Ilmu Budaya", "MIPA", "Teknologi Pertanian", "Ekonomi & Bisnis",
-  "Ilmu Komputer", "Ilmu Kesehatan", "Vokasi", "Rektorat",
-];
 
 async function uploadAvatarToStorage(userId: string, file: File): Promise<string | null> {
   const ext = file.name.split(".").pop() || "png";
@@ -54,7 +48,7 @@ async function uploadAvatarToStorage(userId: string, file: File): Promise<string
 }
 
 export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: ProfileModalProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -379,7 +373,7 @@ export function ProfileModal({ user, darkMode: dm, onClose, onUpdateUser }: Prof
                     style={{ backgroundColor: inputBg, border: `1.5px solid ${border}`, color: text }}
                   >
                     {faculties.map((f) => (
-                      <option key={f} value={f}>{f}</option>
+                      <option key={f} value={f}>{getTranslatedFaculty(f, lang)}</option>
                     ))}
                   </select>
                 </div>
